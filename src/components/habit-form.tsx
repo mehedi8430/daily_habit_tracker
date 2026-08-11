@@ -1,0 +1,158 @@
+"use client";
+
+import * as React from "react";
+import { useHabitStore } from "@/lib/store";
+import { Habit } from "@/lib/types";
+import { CATEGORIES } from "@/lib/types";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+interface HabitFormProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  habit?: Habit | null;
+}
+
+const EMOJI_OPTIONS = [
+  "🏃",
+  "📚",
+  "💪",
+  "🧘",
+  "💧",
+  "🥗",
+  "😴",
+  "🎯",
+  "✍️",
+  "🎸",
+  "🌱",
+  "💡",
+  "🧹",
+  "☀️",
+  "🚭",
+];
+
+export function HabitForm({ open, onOpenChange, habit }: HabitFormProps) {
+  const addHabit = useHabitStore((s) => s.addHabit);
+  const updateHabit = useHabitStore((s) => s.updateHabit);
+
+  const [name, setName] = React.useState("");
+  const [emoji, setEmoji] = React.useState(EMOJI_OPTIONS[0]);
+  const [category, setCategory] = React.useState<string>(CATEGORIES[0].id);
+
+  React.useEffect(() => {
+    if (open) {
+      setName(habit?.name ?? "");
+      setEmoji(habit?.emoji ?? EMOJI_OPTIONS[0]);
+      setCategory(habit?.category ?? CATEGORIES[0].id);
+    }
+  }, [open, habit]);
+
+  const handleSave = () => {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    if (habit) {
+      updateHabit(habit.id, { name: trimmed, emoji, category });
+    } else {
+      addHabit({ name: trimmed, emoji, category });
+    }
+    onOpenChange(false);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{habit ? "Edit Habit" : "Add Habit"}</DialogTitle>
+          <DialogDescription>
+            {habit
+              ? "Update your habit details below."
+              : "Create a new habit to start tracking."}
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4 py-2">
+          <div className="space-y-2">
+            <Label htmlFor="habit-name">Name</Label>
+            <Input
+              id="habit-name"
+              placeholder="e.g. Wake Up on Time"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              autoFocus
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleSave();
+              }}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Icon</Label>
+            <div className="flex flex-wrap gap-1.5">
+              {EMOJI_OPTIONS.map((e) => (
+                <button
+                  key={e}
+                  type="button"
+                  onClick={() => setEmoji(e)}
+                  className={`flex h-9 w-9 items-center justify-center rounded-md border text-lg transition-all ${
+                    emoji === e
+                      ? "border-primary bg-accent scale-110"
+                      : "border-input hover:bg-accent"
+                  }`}
+                >
+                  {e}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Category</Label>
+            <Select value={category} onValueChange={setCategory}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select a category" />
+              </SelectTrigger>
+              <SelectContent>
+                {CATEGORIES.map((c) => (
+                  <SelectItem key={c.id} value={c.id}>
+                    <span className="flex items-center gap-2">
+                      <span
+                        className="h-2.5 w-2.5 rounded-full"
+                        style={{ backgroundColor: c.color }}
+                      />
+                      {c.label}
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button variant="ghost" onClick={() => onOpenChange(false)}>
+            Cancel
+          </Button>
+          <Button onClick={handleSave} disabled={!name.trim()}>
+            {habit ? "Save Changes" : "Add Habit"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}

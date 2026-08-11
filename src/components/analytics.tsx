@@ -1,0 +1,420 @@
+"use client";
+
+import * as React from "react";
+import {
+  format,
+  isToday,
+  subDays,
+} from "date-fns";
+import {
+  BarChart,
+  Bar,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip as RTooltip,
+  ResponsiveContainer,
+  Cell,
+} from "recharts";
+import { useHabitStore } from "@/lib/store";
+import {
+  getMonthDays,
+  getYearDays,
+  toKey,
+  monthlyAverageScore,
+  getLevel,
+  computeStreaks,
+  formatDayShort,
+} from "@/lib/date";
+import { getCategory } from "@/lib/types";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Flame, Trophy } from "lucide-react";
+
+const HEATMAP_LEVELS = [
+  "rgba(22,163,74,0.12)",
+  "rgba(22,163,74,0.35)",
+  "rgba(22,163,74,0.6)",
+  "rgba(22,163,74,0.85)",
+  "rgba(22,163,74,1)",
+];
+
+function heatColor(ratio: number): string {
+  if (ratio <= 0) return "rgba(148,148,148,0.12)";
+  const idx = Math.min(4, Math.ceil(ratio * 4));
+  return HEATMAP_LEVELS[idx];
+}
+
+export function Analytics() {
+  const habits = useHabitStore((s) => s.habits);
+  const completions = useHabitStore((s) => s.completions);
+
+  const [cursor] = React.useState<Date>(new Date());
+  const [view, setView] = React.useState<"month" | "week">("month");
+
+  const monthDays = React.useMemo(
+    () => getMonthDays(cursor.getFullYear(), cursor.getMonth()),
+    [cursor]
+  );
+  const weekDays = React.useMemo(() => {
+    const end = isToday(cursor) ? new Date() : cursor;
+    return Array.from({ length: 7 }, (_, i) => subDays(end, 6 - i));
+  }, [cursor]);
+
+  const days = view === "month" ? monthDays : weekDays;
+  const sortedHabits = React.useMemo(
+    () => [...habits].sort((a, b) => a.order - b.order),
+    [habits]
+  );
+
+  const overallRate = monthlyAverageScore(completions, sortedHabits, monthDays);
+
+  // Per-habit bar chart data
+  const perHabitData = sortedHabits.map((h) => {
+    const count = days.filter(
+      (d) => completions[`${h.id}__${toKey(d)}`]
+    ).length;
+    return {
+      name: h.emoji ? `${h.emoji} ${h.name}` : h.name,
+      days: count,
+      total: days.length,
+      fill: getCategory(h.category).color,
+    };
+  });
+
+  // Daily score line chart data
+  const dailyData = days.map((d) => {
+    const done = sortedHabits.filter(
+      (h) => completions[`${h.id}__${toKey(d)}`]
+    ).length;
+    const pct = sortedHabits.length
+      ? Math.round((done / sortedHabits.length) * 100)
+      : 0;
+    return {
+      date: formatDayShort(d),
+      full: format(d, "MMM d"),
+      score: pct,
+    };
+  });
+
+  // Streaks
+  const streaks = sortedHabits.map((h) => ({
+    habit: h,
+    ...computeStreaks(h.id, completions, monthDays),
+  }));
+
+  const level = getLevel(overallRate);
+
+  // Heatmap (full year)
+  const year = cursor.getFullYear();
+  const yearDays = React.useMemo(() => getYearDays(year), [year]);
+
+  const heatData = yearDays.map((d) => {
+    const done = sortedHabits.filter(
+      (h) => completions[`${h.id}__${toKey(d)}`]
+    ).length;
+    const ratio = sortedHabits.length ? done / sortedHabits.length : 0;
+    return {
+      date: format(d, "yyyy-MM-dd"),
+      label: format(d, "EEE, MMM d"),
+      ratio,
+      done,
+      total: sortedHabits.length,
+    };
+  });
+
+  const weeks: (typeof heatData)[] = [];
+  for (let i = 0; i < heatData.length; i += 7) {
+    weeks.push(heatData.slice(i, i + 7));
+  }
+
+  if (sortedHabits.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center rounded-lg border border-dashed py-20 text-center">
+        <div className="mb-4 text-6xl">📊</div>
+        <h3 className="text-lg font-semibold">No data to analyze yet</h3>
+        <p className="text-sm text-muted-foreground">
+          Add habits and mark them done to unlock your analytics.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Analytics</h1>
+          <p className="text-sm text-muted-foreground">
+            Your progress for {format(cursor, "MMMM yyyy")}
+          </p>
+        </div>
+        <Tabs value={view} onValueChange={(v) => setView(v as "month" | "week")}>
+          <TabsList>
+            <TabsTrigger value="month">Month</TabsTrigger>
+            <TabsTrigger value="week">Week</TabsTrigger>
+          </TabsList>
+        </Tabs>
+      </div>
+
+      {/* Summary cards */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardDescription>Monthly Completion</CardDescription>
+            <CardTitle className="text-3xl">
+              {Math.round(overallRate)}%
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-xs text-muted-foreground">
+              of all possible habit-days
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardDescription>Level Badge</CardDescription>
+            <CardTitle className="flex items-center gap-2 text-2xl">
+              <span
+                className="rounded-md px-2 py-1 text-lg font-bold text-white"
+                style={{ backgroundColor: level.color }}
+              >
+                {level.label}
+              </span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-xs text-muted-foreground">
+              based on monthly average
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardDescription>Active Habits</CardDescription>
+            <CardTitle className="text-3xl">{sortedHabits.length}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-xs text-muted-foreground">being tracked</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardDescription>Best Current Streak</CardDescription>
+            <CardTitle className="text-3xl">
+              {Math.max(0, ...streaks.map((s) => s.current))}🔥
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-xs text-muted-foreground">days in a row</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Per-habit bar chart */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Per-Habit Completion</CardTitle>
+          <CardDescription>
+            How many days each habit was completed this month
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="h-[300px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={perHabitData}
+                layout="vertical"
+                margin={{ left: 10, right: 20 }}
+              >
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  className="stroke-muted"
+                  horizontal={false}
+                />
+                <XAxis
+                  type="number"
+                  domain={[0, days.length]}
+                  tick={{ fontSize: 12 }}
+                  className="fill-muted-foreground"
+                />
+                <YAxis
+                  type="category"
+                  dataKey="name"
+                  width={150}
+                  tick={{ fontSize: 12 }}
+                  className="fill-muted-foreground"
+                />
+                <RTooltip
+                  contentStyle={{
+                    background: "hsl(var(--popover))",
+                    border: "1px solid hsl(var(--border))",
+                    borderRadius: 8,
+                    fontSize: 12,
+                  }}
+                  formatter={(value, _n, item) => [
+                    `${Number(value)} / ${item?.payload?.total} days`,
+                    "Completed",
+                  ]}
+                />
+                <Bar dataKey="days" radius={[0, 4, 4, 0]}>
+                  {perHabitData.map((d, i) => (
+                    <Cell key={i} fill={d.fill} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Daily score line chart */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Daily Score</CardTitle>
+          <CardDescription>
+            % of habits completed each day this month
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="h-[280px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart
+                data={dailyData}
+                margin={{ left: -10, right: 10, top: 10 }}
+              >
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  className="stroke-muted"
+                />
+                <XAxis
+                  dataKey="date"
+                  tick={{ fontSize: 11 }}
+                  className="fill-muted-foreground"
+                  interval="preserveStartEnd"
+                />
+                <YAxis
+                  domain={[0, 100]}
+                  tick={{ fontSize: 12 }}
+                  className="fill-muted-foreground"
+                />
+                <RTooltip
+                  contentStyle={{
+                    background: "hsl(var(--popover))",
+                    border: "1px solid hsl(var(--border))",
+                    borderRadius: 8,
+                    fontSize: 12,
+                  }}
+                  formatter={(value) => [`${Number(value)}%`, "Score"]}
+                  labelFormatter={(_l, payload) =>
+                    (payload?.[0]?.payload?.full as string) ?? ""
+                  }
+                />
+                <Line
+                  type="monotone"
+                  dataKey="score"
+                  stroke="hsl(var(--primary))"
+                  strokeWidth={2}
+                  dot={{ r: 2 }}
+                  activeDot={{ r: 5 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Streaks panel */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Flame className="h-5 w-5 text-orange-500" /> Streaks
+          </CardTitle>
+          <CardDescription>
+            Current and best streaks for each habit this month
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {streaks.map((s) => {
+              const cat = getCategory(s.habit.category);
+              return (
+                <div
+                  key={s.habit.id}
+                  className="flex items-center justify-between rounded-lg border p-3"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">{s.habit.emoji}</span>
+                    <span className="max-w-[120px] truncate text-sm font-medium">
+                      {s.habit.name}
+                    </span>
+                    <span
+                      className="h-2 w-2 rounded-full"
+                      style={{ backgroundColor: cat.color }}
+                    />
+                  </div>
+                  <div className="flex items-center gap-3 text-sm">
+                    <span className="flex items-center gap-1" title="Current streak">
+                      🔥 {s.current}
+                    </span>
+                    <span
+                      className="flex items-center gap-1 text-muted-foreground"
+                      title="Best streak"
+                    >
+                      <Trophy className="h-3.5 w-3.5" /> {s.best}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Heatmap */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Yearly Heatmap</CardTitle>
+          <CardDescription>
+            Completion density per day for {year}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <div className="flex gap-1 min-w-max">
+              {weeks.map((week, wi) => (
+                <div key={wi} className="flex flex-col gap-1">
+                  {week.map((cell) => (
+                    <div
+                      key={cell.date}
+                      title={`${cell.label}: ${cell.done}/${cell.total} done`}
+                      className="h-3.5 w-3.5 rounded-sm"
+                      style={{ backgroundColor: heatColor(cell.ratio) }}
+                    />
+                  ))}
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
+            <span>Less</span>
+            {[0, 0.25, 0.5, 0.75, 1].map((r) => (
+              <div
+                key={r}
+                className="h-3 w-3 rounded-sm"
+                style={{ backgroundColor: heatColor(r) }}
+              />
+            ))}
+            <span>More</span>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
