@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { Toaster } from "sonner";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AppHeader } from "@/components/app-header";
@@ -22,8 +23,9 @@ export default function RootLayout({
         <ThemeProvider>
           <div className="min-h-screen bg-background text-foreground">
             <AppHeader />
-            <main className="container py-6">{children}</main>
+            <main className="container">{children}</main>
           </div>
+          <Toaster richColors />
         </ThemeProvider>
       </body>
     </html>

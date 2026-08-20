@@ -40,6 +40,8 @@ import {
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { Habit } from "@/lib/types";
+import { CompletionRow } from "@/app/actions";
+import { toast } from "sonner";
 
 function SortableRow({
   habit,
@@ -159,12 +161,25 @@ function SortableRow({
   );
 }
 
-export function CalendarGrid() {
+interface CalendarGridProps {
+  initialHabits: Habit[];
+  initialCompletions: CompletionRow[];
+}
+
+export function CalendarGrid({ initialHabits, initialCompletions }: CalendarGridProps) {
   const habits = useHabitStore((s) => s.habits);
   const completions = useHabitStore((s) => s.completions);
+  const initialized = useHabitStore((s) => s.initialized);
+  const initialize = useHabitStore((s) => s.initialize);
   const toggleCompletion = useHabitStore((s) => s.toggleCompletion);
   const reorderHabits = useHabitStore((s) => s.reorderHabits);
   const deleteHabit = useHabitStore((s) => s.deleteHabit);
+
+  React.useEffect(() => {
+    if (!initialized) {
+      initialize(initialHabits, initialCompletions);
+    }
+  }, [initialized, initialize, initialHabits, initialCompletions]);
 
   const [cursor, setCursor] = React.useState<Date>(new Date());
   const [formOpen, setFormOpen] = React.useState(false);
@@ -338,9 +353,14 @@ export function CalendarGrid() {
             </Button>
             <Button
               variant="destructive"
-              onClick={() => {
-                if (toDelete) deleteHabit(toDelete.id);
-                setToDelete(null);
+              onClick={async () => {
+                if (!toDelete) return;
+                try {
+                  await deleteHabit(toDelete.id);
+                  setToDelete(null);
+                } catch (err) {
+                  toast.error(err instanceof Error ? err.message : "Failed to delete habit");
+                }
               }}
             >
               Delete

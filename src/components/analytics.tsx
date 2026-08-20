@@ -32,6 +32,8 @@ import { getCategory } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Flame, Trophy } from "lucide-react";
+import { Habit } from "@/lib/types";
+import { CompletionRow } from "@/app/actions";
 
 const HEATMAP_LEVELS = [
   "rgba(22,163,74,0.12)",
@@ -47,9 +49,22 @@ function heatColor(ratio: number): string {
   return HEATMAP_LEVELS[idx];
 }
 
-export function Analytics() {
+interface AnalyticsProps {
+  initialHabits: Habit[];
+  initialCompletions: CompletionRow[];
+}
+
+export function Analytics({ initialHabits, initialCompletions }: AnalyticsProps) {
   const habits = useHabitStore((s) => s.habits);
   const completions = useHabitStore((s) => s.completions);
+  const initialized = useHabitStore((s) => s.initialized);
+  const initialize = useHabitStore((s) => s.initialize);
+
+  React.useEffect(() => {
+    if (!initialized) {
+      initialize(initialHabits, initialCompletions);
+    }
+  }, [initialized, initialize, initialHabits, initialCompletions]);
 
   const [cursor] = React.useState<Date>(new Date());
   const [view, setView] = React.useState<"month" | "week">("month");
