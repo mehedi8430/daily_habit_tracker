@@ -13,6 +13,17 @@ export function AppHeader() {
   const { theme, toggleTheme } = useTheme();
   const pathname = usePathname();
   const [loggingOut, setLoggingOut] = React.useState(false);
+  const [isAuthorized, setIsAuthorized] = React.useState(false);
+
+  React.useEffect(() => {
+    let active = true;
+    fetch("/api/auth/session")
+      .then((res) => setIsAuthorized(active && res.ok))
+      .catch(() => setIsAuthorized(false));
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const handleLogout = async () => {
     setLoggingOut(true);
@@ -32,45 +43,49 @@ export function AppHeader() {
   ];
 
   return (
-    <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur">
+    <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur pl-6">
       <div className="container flex h-14 items-center justify-between">
         <div className="flex items-center gap-6">
           <Link href="/" className="flex items-center gap-2 font-bold">
             <span className="text-xl">✅</span>
             <span className="hidden sm:inline">Habit Tracker</span>
           </Link>
-          <nav className="flex items-center gap-1">
-            {links.map((l) => {
-              const active =
-                l.href === "/"
-                  ? pathname === "/"
-                  : pathname.startsWith(l.href);
-              const Icon = l.icon;
-              return (
-                <Link key={l.href} href={l.href}>
-                  <Button
-                    variant={active ? "secondary" : "ghost"}
-                    size="sm"
-                    className={cn("gap-2")}
-                  >
-                    <Icon className="h-4 w-4" />
-                    {l.label}
-                  </Button>
-                </Link>
-              );
-            })}
-          </nav>
+          {isAuthorized && (
+            <nav className="flex items-center gap-1">
+              {links.map((l) => {
+                const active =
+                  l.href === "/"
+                    ? pathname === "/"
+                    : pathname.startsWith(l.href);
+                const Icon = l.icon;
+                return (
+                  <Link key={l.href} href={l.href}>
+                    <Button
+                      variant={active ? "secondary" : "ghost"}
+                      size="sm"
+                      className={cn("gap-2")}
+                    >
+                      <Icon className="h-4 w-4" />
+                      {l.label}
+                    </Button>
+                  </Link>
+                );
+              })}
+            </nav>
+          )}
         </div>
         <div className="flex items-center gap-1">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleLogout}
-            aria-label="Log out"
-            disabled={loggingOut}
-          >
-            <LogOut className="h-5 w-5" />
-          </Button>
+          {isAuthorized && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleLogout}
+              aria-label="Log out"
+              disabled={loggingOut}
+            >
+              <LogOut className="h-5 w-5" />
+            </Button>
+          )}
           <Button
             variant="ghost"
             size="icon"

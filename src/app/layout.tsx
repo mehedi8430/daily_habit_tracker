@@ -23,7 +23,7 @@ export default function RootLayout({
         <ThemeProvider>
           <div className="min-h-screen bg-background text-foreground">
             <AppHeader />
-            <main className="container py-6">{children}</main>
+            <main className="container">{children}</main>
           </div>
           <Toaster richColors />
         </ThemeProvider>
