@@ -22,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { toast } from "sonner";
 
 interface HabitFormProps {
   open: boolean;
@@ -54,24 +55,33 @@ export function HabitForm({ open, onOpenChange, habit }: HabitFormProps) {
   const [name, setName] = React.useState("");
   const [emoji, setEmoji] = React.useState(EMOJI_OPTIONS[0]);
   const [category, setCategory] = React.useState<string>(CATEGORIES[0].id);
+  const [saving, setSaving] = React.useState(false);
 
   React.useEffect(() => {
     if (open) {
       setName(habit?.name ?? "");
       setEmoji(habit?.emoji ?? EMOJI_OPTIONS[0]);
       setCategory(habit?.category ?? CATEGORIES[0].id);
+      setSaving(false);
     }
   }, [open, habit]);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const trimmed = name.trim();
     if (!trimmed) return;
-    if (habit) {
-      updateHabit(habit.id, { name: trimmed, emoji, category });
-    } else {
-      addHabit({ name: trimmed, emoji, category });
+    setSaving(true);
+    try {
+      if (habit) {
+        await updateHabit(habit.id, { name: trimmed, emoji, category });
+      } else {
+        await addHabit({ name: trimmed, emoji, category });
+      }
+      onOpenChange(false);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to save habit");
+    } finally {
+      setSaving(false);
     }
-    onOpenChange(false);
   };
 
   return (
@@ -148,8 +158,8 @@ export function HabitForm({ open, onOpenChange, habit }: HabitFormProps) {
           <Button variant="ghost" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={handleSave} disabled={!name.trim()}>
-            {habit ? "Save Changes" : "Add Habit"}
+          <Button onClick={handleSave} disabled={!name.trim() || saving}>
+            {saving ? "Saving..." : habit ? "Save Changes" : "Add Habit"}
           </Button>
         </DialogFooter>
       </DialogContent>

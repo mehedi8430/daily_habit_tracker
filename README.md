@@ -1,36 +1,57 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Daily Habit Tracker
+
+A Next.js (App Router) daily habit tracker with Supabase multi-user support.
 
 ## Getting Started
 
-First, run the development server:
+### 1. Set up Supabase
+
+1. Create a new project at [supabase.com](https://supabase.com).
+2. In your Supabase project, go to **SQL Editor** and run the migration SQL from `supabase/migrations/20250820090000_init_schema.sql`.
+3. Enable **Email/Password** authentication in **Authentication > Providers**.
+4. Copy your project URL, anon key, and service role key from **Project Settings > API**.
+
+### 2. Configure Environment Variables
+
+Copy `.env.example` to `.env.local` and fill in your Supabase credentials:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+```
+
+### 3. Install Dependencies
+
+```bash
+npm install
+```
+
+### 4. Run the Development Server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) with your browser. You will be redirected to `/login`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 5. Create an Account
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Click **Sign up** to create a new account with email and password. After signing up, you will be redirected to the app where you can add habits and start tracking.
 
-## Learn More
+## Features
 
-To learn more about Next.js, take a look at the following resources:
+- **Multi-user**: Each user has their own habits and completions, isolated via Row Level Security (RLS).
+- **Email/Password Auth**: Simple sign up, log in, and log out.
+- **Calendar Grid**: View and toggle daily completions, drag to reorder habits.
+- **Analytics**: Completion rates, per-habit charts, streaks, and a yearly heatmap.
+- **Dark/Light Mode**: Toggle between themes.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Tech Stack
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Next.js 16 (App Router)
+- Supabase (Postgres + Auth)
+- Zustand (client state)
+- Tailwind CSS v4
+- shadcn/ui
+- Recharts
