@@ -3,14 +3,28 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Moon, Sun, CalendarDays, BarChart3 } from "lucide-react";
+import { Moon, Sun, CalendarDays, BarChart3, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/components/theme-provider";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 export function AppHeader() {
   const { theme, toggleTheme } = useTheme();
   const pathname = usePathname();
+  const [loggingOut, setLoggingOut] = React.useState(false);
+
+  const handleLogout = async () => {
+    setLoggingOut(true);
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+      toast.success("Logged out successfully");
+      window.location.href = "/login";
+    } catch {
+      toast.error("Failed to log out");
+      setLoggingOut(false);
+    }
+  };
 
   const links = [
     { href: "/", label: "Calendar", icon: CalendarDays },
@@ -47,18 +61,29 @@ export function AppHeader() {
             })}
           </nav>
         </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={toggleTheme}
-          aria-label="Toggle theme"
-        >
-          {theme === "dark" ? (
-            <Sun className="h-5 w-5" />
-          ) : (
-            <Moon className="h-5 w-5" />
-          )}
-        </Button>
+        <div className="flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleLogout}
+            aria-label="Log out"
+            disabled={loggingOut}
+          >
+            <LogOut className="h-5 w-5" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleTheme}
+            aria-label="Toggle theme"
+          >
+            {theme === "dark" ? (
+              <Sun className="h-5 w-5" />
+            ) : (
+              <Moon className="h-5 w-5" />
+            )}
+          </Button>
+        </div>
       </div>
     </header>
   );
