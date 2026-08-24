@@ -2,35 +2,25 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Moon, Sun, CalendarDays, BarChart3, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/components/theme-provider";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
-export function AppHeader() {
+export function AppHeader({ isAuthorized }: { isAuthorized: boolean }) {
   const { theme, toggleTheme } = useTheme();
   const pathname = usePathname();
+  const router = useRouter();
   const [loggingOut, setLoggingOut] = React.useState(false);
-  const [isAuthorized, setIsAuthorized] = React.useState(false);
-
-  React.useEffect(() => {
-    let active = true;
-    fetch("/api/auth/session")
-      .then((res) => setIsAuthorized(active && res.ok))
-      .catch(() => setIsAuthorized(false));
-    return () => {
-      active = false;
-    };
-  }, []);
 
   const handleLogout = async () => {
     setLoggingOut(true);
     try {
       await fetch("/api/auth/logout", { method: "POST" });
       toast.success("Logged out successfully");
-      window.location.href = "/login";
+      router.push("/login");
     } catch {
       toast.error("Failed to log out");
       setLoggingOut(false);

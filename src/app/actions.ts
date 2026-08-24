@@ -3,7 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { Habit } from "@/lib/types";
+import type { Habit } from "@/lib/types";
 
 export interface CompletionRow {
   habit_id: string;
@@ -65,7 +65,7 @@ export async function addHabit(data: {
   name: string;
   emoji: string;
   category: string;
-}) {
+}): Promise<{ success: true; habit: Habit } | { error: string }> {
   const supabase = await createClient();
   const {
     data: { user },
@@ -75,22 +75,31 @@ export async function addHabit(data: {
     redirect("/login");
   }
 
-  const { data: habits, error: habitsError } = await supabase
+  const { data: lastHabit, error: habitsError } = await supabase
     .from("habits")
     .select("sort_order")
     .eq("user_id", user.id)
     .order("sort_order", { ascending: false })
     .limit(1);
 
-  const nextOrder = habits && habits.length > 0 ? habits[0].sort_order + 1 : 0;
+  if (habitsError) {
+    return { error: habitsError.message };
+  }
 
-  const { error } = await supabase.from("habits").insert({
-    user_id: user.id,
-    name: data.name,
-    emoji: data.emoji,
-    category: data.category,
-    sort_order: nextOrder,
-  });
+  const nextOrder =
+    lastHabit && lastHabit.length > 0 ? lastHabit[0].sort_order + 1 : 0;
+
+  const { data: created, error } = await supabase
+    .from("habits")
+    .insert({
+      user_id: user.id,
+      name: data.name,
+      emoji: data.emoji,
+      category: data.category,
+      sort_order: nextOrder,
+    })
+    .select()
+    .single();
 
   if (error) {
     return { error: error.message };
@@ -98,7 +107,17 @@ export async function addHabit(data: {
 
   revalidatePath("/");
   revalidatePath("/analytics");
-  return { success: true };
+  return {
+    success: true,
+    habit: {
+      id: created.id as string,
+      name: created.name as string,
+      emoji: created.emoji as string,
+      category: created.category as string,
+      order: (created.sort_order as number) ?? 0,
+      createdAt: created.created_at as string,
+    },
+  };
 }
 
 export async function updateHabit(

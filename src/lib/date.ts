@@ -5,8 +5,6 @@ import {
   eachDayOfInterval,
   startOfYear,
   endOfYear,
-  differenceInCalendarDays,
-  isSameDay,
 } from "date-fns";
 
 export function toKey(date: Date): string {
@@ -100,5 +98,3 @@ export function computeStreaks(
 
   return { current, best };
 }
-
-export { differenceInCalendarDays, isSameDay };

@@ -58,23 +58,27 @@ export const useHabitStore = create<HabitState>()((set, get) => ({
     };
     set((state) => ({ habits: [...state.habits, newHabit] }));
     const result = await actions.addHabit(data);
-    if ("error" in result && result.error) {
+    if ("error" in result) {
       set((state) => ({
         habits: state.habits.filter((h) => h.id !== tempId),
       }));
-      throw new Error(result.error as string);
+      throw new Error(result.error);
     }
+    set((state) => ({
+      habits: state.habits.map((h) =>
+        h.id === tempId ? result.habit : h
+      ),
+    }));
   },
 
   updateHabit: async (id, data) => {
+    const prev = get().habits;
     set((state) => ({
       habits: state.habits.map((h) => (h.id === id ? { ...h, ...data } : h)),
     }));
     const result = await actions.updateHabit(id, data);
     if ("error" in result && result.error) {
-      set((state) => ({
-        habits: state.habits.map((h) => (h.id === id ? { ...h, ...data } : h)),
-      }));
+      set({ habits: prev });
       throw new Error(result.error as string);
     }
   },
@@ -85,7 +89,7 @@ export const useHabitStore = create<HabitState>()((set, get) => ({
     set((state) => {
       const completions = { ...state.completions };
       for (const key of Object.keys(completions)) {
-        if (key.startsWith(`${id}__`) || key.startsWith(id)) {
+        if (key.startsWith(`${id}__`)) {
           delete completions[key];
         }
       }
@@ -104,6 +108,7 @@ export const useHabitStore = create<HabitState>()((set, get) => ({
   },
 
   reorderHabits: async (ids) => {
+    const prev = get().habits;
     set((state) => ({
       habits: state.habits
         .map((h) => ({ ...h, order: ids.indexOf(h.id) }))
@@ -111,11 +116,7 @@ export const useHabitStore = create<HabitState>()((set, get) => ({
     }));
     const result = await actions.reorderHabits(ids);
     if ("error" in result && result.error) {
-      set((state) => ({
-        habits: state.habits
-          .map((h) => ({ ...h, order: ids.indexOf(h.id) }))
-          .sort((a, b) => a.order - b.order),
-      }));
+      set({ habits: prev });
       throw new Error(result.error as string);
     }
   },

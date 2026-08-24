@@ -4,44 +4,44 @@ import * as React from "react";
 
 type Theme = "dark" | "light";
 
-interface ThemeContextValue {
-  theme: Theme;
-  toggleTheme: () => void;
+const STORAGE_KEY = "habit-theme";
+
+function getTheme(): Theme {
+  return document.documentElement.classList.contains("dark")
+    ? "dark"
+    : "light";
 }
 
-const ThemeContext = React.createContext<ThemeContextValue>({
-  theme: "dark",
-  toggleTheme: () => {},
-});
+let listeners: Array<() => void> = [];
+
+function subscribe(listener: () => void) {
+  listeners.push(listener);
+  return () => {
+    listeners = listeners.filter((l) => l !== listener);
+  };
+}
+
+export function setTheme(theme: Theme) {
+  document.documentElement.classList.toggle("dark", theme === "dark");
+  try {
+    localStorage.setItem(STORAGE_KEY, theme);
+  } catch {}
+  for (const listener of listeners) listener();
+}
+
+export function toggleTheme() {
+  setTheme(getTheme() === "dark" ? "light" : "dark");
+}
 
 export function useTheme() {
-  return React.useContext(ThemeContext);
+  const theme = React.useSyncExternalStore(
+    subscribe,
+    getTheme,
+    () => "dark" as Theme
+  );
+  return { theme, toggleTheme };
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = React.useState<Theme>("dark");
-
-  React.useEffect(() => {
-    const stored = localStorage.getItem("habit-theme") as Theme | null;
-    if (stored) {
-      setTheme(stored);
-    } else if (window.matchMedia("(prefers-color-scheme: light)").matches) {
-      setTheme("light");
-    }
-  }, []);
-
-  React.useEffect(() => {
-    const root = document.documentElement;
-    root.classList.toggle("dark", theme === "dark");
-    localStorage.setItem("habit-theme", theme);
-  }, [theme]);
-
-  const toggleTheme = () =>
-    setTheme((t) => (t === "dark" ? "light" : "dark"));
-
-  return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
-      {children}
-    </ThemeContext.Provider>
-  );
+  return <>{children}</>;
 }
