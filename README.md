@@ -1,57 +1,93 @@
 # Daily Habit Tracker
 
-A Next.js (App Router) daily habit tracker with Supabase multi-user support.
+A modern daily habit tracker built with **Next.js** and **Supabase**. Track habits on a monthly calendar, build streaks, and measure progress with a full analytics dashboard — with multi-user support out of the box.
+
+[![Live Demo](https://img.shields.io/badge/live_demo-visit-brightgreen)](https://your-demo-url.vercel.app)
+[![Next.js](https://img.shields.io/badge/Next.js-16-black)](https://nextjs.org)
+[![React](https://img.shields.io/badge/React-19-61dafb)](https://react.dev)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178c6)](https://www.typescriptlang.org)
+[![Supabase](https://img.shields.io/badge/Supabase-Postgres_&_Auth-3fcf8e)](https://supabase.com)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-38bdf8)](https://tailwindcss.com)
+
+## Features
+
+- **Email & password authentication** — sign up, log in, and log out, with protected routes that redirect unauthenticated visitors to the login page.
+- **Multi-user by design** — each user's habits and completions are isolated at the database level using Postgres Row Level Security (RLS).
+- **Calendar grid** — month view with one-click completion toggles for every habit.
+- **Drag-and-drop ordering** — rearrange habits into the order that works for you.
+- **Analytics dashboard** — completion rates, per-habit charts, current and best streaks, and a GitHub-style yearly heatmap.
+- **Dark & light mode** — switch themes from the header.
+
+## Tech Stack
+
+| Layer            | Technology                                  |
+| ---------------- | ------------------------------------------- |
+| Framework        | Next.js 16 (App Router) · React 19           |
+| Language         | TypeScript                                   |
+| Database & Auth  | Supabase (Postgres + Auth + RLS)             |
+| Client state     | Zustand                                      |
+| Styling          | Tailwind CSS v4                              |
+| UI components    | shadcn/ui (Radix primitives)                 |
+| Charts           | Recharts                                     |
+| Drag & drop      | dnd-kit                                      |
+| Dates            | date-fns                                     |
 
 ## Getting Started
 
-### 1. Set up Supabase
+### Prerequisites
+
+- Node.js 20+
+- A free [Supabase](https://supabase.com) account
+
+### 1. Set Up Supabase
 
 1. Create a new project at [supabase.com](https://supabase.com).
-2. In your Supabase project, go to **SQL Editor** and run the migration SQL from `supabase/migrations/20250820090000_init_schema.sql`.
-3. Enable **Email/Password** authentication in **Authentication > Providers**.
-4. Copy your project URL, anon key, and service role key from **Project Settings > API**.
+2. Open the **SQL Editor** and run the migration in [`supabase/migrations/20250820090000_init_schema.sql`](supabase/migrations/20250820090000_init_schema.sql). This creates the tables and RLS policies.
+3. Under **Authentication → Providers**, enable **Email/Password**.
+4. From **Project Settings → API**, copy your project URL, anon key, and service role key.
 
 ### 2. Configure Environment Variables
 
 Copy `.env.example` to `.env.local` and fill in your Supabase credentials:
 
-```env
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+```bash
+cp .env.example .env.local
 ```
 
-### 3. Install Dependencies
+| Variable                     | Description                          |
+| ---------------------------- | ------------------------------------ |
+| `NEXT_PUBLIC_SUPABASE_URL`   | Your Supabase project URL            |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Public anonymous key              |
+| `SUPABASE_SERVICE_ROLE_KEY`  | Server-side service role key         |
+
+### 3. Install and Run
 
 ```bash
 npm install
-```
-
-### 4. Run the Development Server
-
-```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser. You will be redirected to `/login`.
+Open [http://localhost:3000](http://localhost:3000) — you'll be redirected to `/login`. Create an account via **Sign up**, add your first habit, and start tracking.
 
-### 5. Create an Account
+## Project Structure
 
-Click **Sign up** to create a new account with email and password. After signing up, you will be redirected to the app where you can add habits and start tracking.
+```
+src/
+├── app/
+│   ├── (auth)/          # Login and signup pages
+│   ├── api/auth/        # Signup, login, logout, session endpoints
+│   ├── analytics/       # Analytics dashboard
+│   ├── actions.ts       # Server actions for habits & completions
+│   └── page.tsx         # Habit calendar (home)
+├── components/          # Calendar grid, habit form, analytics, header, UI kit
+└── lib/                 # Supabase clients, Zustand store, date helpers, types
+```
 
-## Features
+## Available Scripts
 
-- **Multi-user**: Each user has their own habits and completions, isolated via Row Level Security (RLS).
-- **Email/Password Auth**: Simple sign up, log in, and log out.
-- **Calendar Grid**: View and toggle daily completions, drag to reorder habits.
-- **Analytics**: Completion rates, per-habit charts, streaks, and a yearly heatmap.
-- **Dark/Light Mode**: Toggle between themes.
-
-## Tech Stack
-
-- Next.js 16 (App Router)
-- Supabase (Postgres + Auth)
-- Zustand (client state)
-- Tailwind CSS v4
-- shadcn/ui
-- Recharts
+| Command           | Description                        |
+| ----------------- | ---------------------------------- |
+| `npm run dev`     | Start the development server       |
+| `npm run build`   | Create a production build          |
+| `npm start`       | Serve the production build         |
+| `npm run lint`    | Run ESLint                         |
