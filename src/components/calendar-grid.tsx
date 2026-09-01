@@ -50,6 +50,7 @@ function SortableRow({
   toggle,
   onEdit,
   onDelete,
+  cols,
 }: {
   habit: Habit;
   days: Date[];
@@ -57,6 +58,7 @@ function SortableRow({
   toggle: (habitId: string, date: Date) => void;
   onEdit: (h: Habit) => void;
   onDelete: (h: Habit) => void;
+  cols: string;
 }) {
   const {
     attributes,
@@ -70,6 +72,8 @@ function SortableRow({
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
+    gridColumn: "1 / -1",
+    gridTemplateColumns: cols,
   };
 
   const cat = getCategory(habit.category);
@@ -81,12 +85,12 @@ function SortableRow({
     <div
       ref={setNodeRef}
       style={style}
-      className={cn(
-        "contents",
-        isDragging && "opacity-50"
-      )}
+      className={cn("grid", isDragging && "relative z-10")}
     >
-      <div className="sticky left-0 z-20 flex items-center gap-1 border-b border-r bg-card px-3 py-2 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.2)]">
+      <div className={cn(
+        "sticky left-0 z-20 flex items-center gap-1 border-b border-r bg-card px-3 py-2 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.2)]",
+        isDragging && "bg-accent ring-2 ring-inset ring-primary"
+      )}>
         <button
           {...attributes}
           {...listeners}
@@ -134,7 +138,8 @@ function SortableRow({
               <div
                 className={cn(
                   "flex items-center justify-center border-b border-r py-2",
-                  today && "bg-primary/5"
+                  today && "bg-primary/5",
+                  isDragging && "bg-accent/50"
                 )}
               >
                 <HabitCheckbox
@@ -198,6 +203,8 @@ export function CalendarGrid({ initialHabits, initialCompletions }: CalendarGrid
     () => [...habits].sort((a, b) => a.order - b.order),
     [habits]
   );
+
+  const cols = `340px repeat(${days.length}, minmax(48px, 1fr)) 64px`;
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -263,7 +270,7 @@ export function CalendarGrid({ initialHabits, initialCompletions }: CalendarGrid
           <div className="overflow-auto rounded-lg border">
             <div
               className="grid min-w-max"
-              style={{ gridTemplateColumns: `340px repeat(${days.length}, minmax(48px, 1fr)) 64px` }}
+              style={{ gridTemplateColumns: cols }}
             >
               {/* Header row */}
               <div className="sticky left-0 z-30 flex items-center border-b border-r bg-card px-3 py-3 font-semibold shadow-[2px_0_5px_-2px_rgba(0,0,0,0.2)]">
@@ -317,6 +324,7 @@ export function CalendarGrid({ initialHabits, initialCompletions }: CalendarGrid
                         toggle={toggleCompletion}
                         onEdit={openEdit}
                         onDelete={setToDelete}
+                        cols={cols}
                       />
                     ))}
                   </SortableContext>
