@@ -29,24 +29,6 @@ interface HabitFormProps {
   habit?: Habit | null;
 }
 
-const EMOJI_OPTIONS = [
-  "🏃",
-  "📚",
-  "💪",
-  "🧘",
-  "💧",
-  "🥗",
-  "😴",
-  "🎯",
-  "✍️",
-  "🎸",
-  "🌱",
-  "💡",
-  "🧹",
-  "☀️",
-  "🚭",
-];
-
 function HabitFormFields({
   habit,
   close,
@@ -58,7 +40,6 @@ function HabitFormFields({
   const updateHabit = useHabitStore((s) => s.updateHabit);
 
   const [name, setName] = React.useState(habit?.name ?? "");
-  const [emoji, setEmoji] = React.useState(habit?.emoji ?? EMOJI_OPTIONS[0]);
   const [category, setCategory] = React.useState(
     habit?.category ?? CATEGORIES[0].id
   );
@@ -70,9 +51,9 @@ function HabitFormFields({
     setSaving(true);
     try {
       if (habit) {
-        await updateHabit(habit.id, { name: trimmed, emoji, category });
+        await updateHabit(habit.id, { name: trimmed, category });
       } else {
-        await addHabit({ name: trimmed, emoji, category });
+        await addHabit({ name: trimmed, category });
       }
       close();
     } catch (err) {
@@ -97,26 +78,6 @@ function HabitFormFields({
               if (e.key === "Enter") handleSave();
             }}
           />
-        </div>
-
-        <div className="space-y-2">
-          <Label>Icon</Label>
-          <div className="flex flex-wrap gap-1.5">
-            {EMOJI_OPTIONS.map((e) => (
-              <button
-                key={e}
-                type="button"
-                onClick={() => setEmoji(e)}
-                className={`flex h-9 w-9 items-center justify-center rounded-md border text-lg transition-all ${
-                  emoji === e
-                    ? "border-primary bg-accent scale-110"
-                    : "border-input hover:bg-accent"
-                }`}
-              >
-                {e}
-              </button>
-            ))}
-          </div>
         </div>
 
         <div className="space-y-2">

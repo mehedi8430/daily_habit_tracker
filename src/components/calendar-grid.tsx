@@ -95,8 +95,7 @@ function SortableRow({
         >
           <GripVertical className="h-4 w-4" />
         </button>
-        <span className="text-lg">{habit.emoji}</span>
-        <span className="max-w-[140px] truncate font-medium" title={habit.name}>
+        <span className="max-w-[240px] truncate font-medium" title={habit.name}>
           {habit.name}
         </span>
         <span
@@ -264,7 +263,7 @@ export function CalendarGrid({ initialHabits, initialCompletions }: CalendarGrid
           <div className="overflow-auto rounded-lg border">
             <div
               className="grid min-w-max"
-              style={{ gridTemplateColumns: `230px repeat(${days.length}, minmax(48px, 1fr)) 64px` }}
+              style={{ gridTemplateColumns: `340px repeat(${days.length}, minmax(48px, 1fr)) 64px` }}
             >
               {/* Header row */}
               <div className="sticky left-0 z-30 flex items-center border-b border-r bg-card px-3 py-3 font-semibold shadow-[2px_0_5px_-2px_rgba(0,0,0,0.2)]">

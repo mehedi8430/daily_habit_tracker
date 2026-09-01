@@ -1,7 +1,7 @@
 export interface Habit {
   id: string;
   name: string;
-  emoji: string;
+  emoji?: string;
   category: string;
   order: number;
   createdAt: string; // ISO date

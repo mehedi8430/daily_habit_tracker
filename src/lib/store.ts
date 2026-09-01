@@ -21,10 +21,10 @@ interface HabitState {
   completions: Record<string, boolean>;
   initialized: boolean;
   initialize: (habits: Habit[], completions: actions.CompletionRow[]) => void;
-  addHabit: (data: { name: string; emoji: string; category: string }) => Promise<void>;
+  addHabit: (data: { name: string; category: string }) => Promise<void>;
   updateHabit: (
     id: string,
-    data: { name: string; emoji: string; category: string }
+    data: { name: string; category: string }
   ) => Promise<void>;
   deleteHabit: (id: string) => Promise<void>;
   reorderHabits: (ids: string[]) => Promise<void>;
@@ -51,7 +51,6 @@ export const useHabitStore = create<HabitState>()((set, get) => ({
     const newHabit: Habit = {
       id: tempId,
       name: data.name,
-      emoji: data.emoji,
       category: data.category,
       order: get().habits.length,
       createdAt: new Date().toISOString(),

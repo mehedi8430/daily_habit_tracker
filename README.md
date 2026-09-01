@@ -2,7 +2,7 @@
 
 A modern daily habit tracker built with **Next.js** and **Supabase**. Track habits on a monthly calendar, build streaks, and measure progress with a full analytics dashboard — with multi-user support out of the box.
 
-[![Live Demo](https://img.shields.io/badge/live_demo-visit-brightgreen)](https://your-demo-url.vercel.app)
+[![Live Demo](https://daily-habit-tracker-mhr.vercel.app/)](https://daily-habit-tracker-mhr.vercel.app/)
 [![Next.js](https://img.shields.io/badge/Next.js-16-black)](https://nextjs.org)
 [![React](https://img.shields.io/badge/React-19-61dafb)](https://react.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178c6)](https://www.typescriptlang.org)

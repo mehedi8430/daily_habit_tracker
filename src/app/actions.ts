@@ -63,7 +63,6 @@ export async function getInitialData() {
 
 export async function addHabit(data: {
   name: string;
-  emoji: string;
   category: string;
 }): Promise<{ success: true; habit: Habit } | { error: string }> {
   const supabase = await createClient();
@@ -94,7 +93,6 @@ export async function addHabit(data: {
     .insert({
       user_id: user.id,
       name: data.name,
-      emoji: data.emoji,
       category: data.category,
       sort_order: nextOrder,
     })
@@ -122,7 +120,7 @@ export async function addHabit(data: {
 
 export async function updateHabit(
   id: string,
-  data: { name: string; emoji: string; category: string }
+  data: { name: string; category: string }
 ) {
   const supabase = await createClient();
   const {
@@ -137,7 +135,6 @@ export async function updateHabit(
     .from("habits")
     .update({
       name: data.name,
-      emoji: data.emoji,
       category: data.category,
     })
     .eq("id", id)

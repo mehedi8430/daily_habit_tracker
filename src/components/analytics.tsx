@@ -92,7 +92,7 @@ export function Analytics({ initialHabits, initialCompletions }: AnalyticsProps)
       (d) => completions[`${h.id}__${toKey(d)}`]
     ).length;
     return {
-      name: h.emoji ? `${h.emoji} ${h.name}` : h.name,
+      name: h.name,
       days: count,
       total: days.length,
       fill: getCategory(h.category).color,
@@ -365,7 +365,6 @@ export function Analytics({ initialHabits, initialCompletions }: AnalyticsProps)
                   className="flex items-center justify-between rounded-lg border p-3"
                 >
                   <div className="flex items-center gap-2">
-                    <span className="text-xl">{s.habit.emoji}</span>
                     <span className="max-w-[120px] truncate text-sm font-medium">
                       {s.habit.name}
                     </span>
