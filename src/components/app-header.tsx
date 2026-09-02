@@ -33,7 +33,7 @@ export function AppHeader({ isAuthorized }: { isAuthorized: boolean }) {
   ];
 
   return (
-    <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur pl-6">
+    <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur px-4 sm:px-6">
       <div className="container flex h-14 items-center justify-between">
         <div className="flex items-center gap-6">
           <Link href="/" className="flex items-center gap-2 font-bold">

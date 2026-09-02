@@ -99,7 +99,7 @@ function SortableRow({
         >
           <GripVertical className="h-4 w-4" />
         </button>
-        <span className="max-w-[240px] truncate font-medium" title={habit.name}>
+        <span className="max-w-60 truncate font-medium" title={habit.name}>
           {habit.name}
         </span>
         <span
@@ -189,6 +189,14 @@ export function CalendarGrid({ initialHabits, initialCompletions }: CalendarGrid
   const [formOpen, setFormOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<Habit | null>(null);
   const [toDelete, setToDelete] = React.useState<Habit | null>(null);
+  const [isMobile, setIsMobile] = React.useState(false);
+
+  React.useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 640);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
@@ -204,7 +212,10 @@ export function CalendarGrid({ initialHabits, initialCompletions }: CalendarGrid
     [habits]
   );
 
-  const cols = `340px repeat(${days.length}, minmax(48px, 1fr)) 64px`;
+  const habitCol = isMobile ? 180 : 340;
+  const dayCol = isMobile ? 40 : 48;
+  const counterCol = isMobile ? 48 : 64;
+  const cols = `${habitCol}px repeat(${days.length}, minmax(${dayCol}px, 1fr)) ${counterCol}px`;
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -239,7 +250,7 @@ export function CalendarGrid({ initialHabits, initialCompletions }: CalendarGrid
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
-            <h2 className="min-w-[160px] text-center text-xl font-bold">
+            <h2 className="min-w-40 text-center text-xl font-bold">
               {monthLabel}
             </h2>
             <Button
