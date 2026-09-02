@@ -23,6 +23,12 @@ export function getYearDays(year: number): Date[] {
   return eachDayOfInterval({ start, end });
 }
 
+export function getMonthBuckets(year: number): Date[][] {
+  return Array.from({ length: 12 }, (_, m) =>
+    getMonthDays(year, m)
+  );
+}
+
 export function formatDayShort(date: Date): string {
   return format(date, "EEE d");
 }
@@ -42,6 +48,25 @@ export function monthlyAverageScore(
   for (const day of days) {
     const key = toKey(day);
     for (const h of habits) {
+      if (completions[`${h.id}__${key}`]) done += 1;
+    }
+  }
+  return total === 0 ? 0 : (done / total) * 100;
+}
+
+export function yearlyCompletionRatio(
+  completions: Record<string, boolean>,
+  habits: { id: string }[],
+  year: number
+): number {
+  const days = getYearDays(year);
+  if (habits.length === 0 || days.length === 0) return 0;
+  let total = 0;
+  let done = 0;
+  for (const day of days) {
+    const key = toKey(day);
+    for (const h of habits) {
+      total += 1;
       if (completions[`${h.id}__${key}`]) done += 1;
     }
   }

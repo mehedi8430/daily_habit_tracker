@@ -218,14 +218,26 @@ export async function toggleCompletion(habitId: string, date: string) {
     .single();
 
   if (existing) {
-    const { error } = await supabase
-      .from("completions")
-      .update({ completed: !existing.completed, updated_at: new Date().toISOString() })
-      .eq("id", existing.id)
-      .eq("user_id", user.id);
+    if (existing.completed) {
+      const { error } = await supabase
+        .from("completions")
+        .delete()
+        .eq("id", existing.id)
+        .eq("user_id", user.id);
 
-    if (error) {
-      return { error: error.message };
+      if (error) {
+        return { error: error.message };
+      }
+    } else {
+      const { error } = await supabase
+        .from("completions")
+        .update({ completed: true, updated_at: new Date().toISOString() })
+        .eq("id", existing.id)
+        .eq("user_id", user.id);
+
+      if (error) {
+        return { error: error.message };
+      }
     }
   } else {
     const { error } = await supabase.from("completions").insert({
@@ -267,10 +279,21 @@ export async function setCompletion(
     .eq("date", date)
     .single();
 
-  if (existing) {
+  if (!completed) {
     const { error } = await supabase
       .from("completions")
-      .update({ completed, updated_at: new Date().toISOString() })
+      .delete()
+      .eq("user_id", user.id)
+      .eq("habit_id", habitId)
+      .eq("date", date);
+
+    if (error) {
+      return { error: error.message };
+    }
+  } else if (existing) {
+    const { error } = await supabase
+      .from("completions")
+      .update({ completed: true, updated_at: new Date().toISOString() })
       .eq("id", existing.id)
       .eq("user_id", user.id);
 
@@ -282,7 +305,7 @@ export async function setCompletion(
       user_id: user.id,
       habit_id: habitId,
       date,
-      completed,
+      completed: true,
     });
 
     if (error) {

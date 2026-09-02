@@ -22,13 +22,17 @@ import { useHabitStore } from "@/lib/store";
 import {
   getMonthDays,
   getYearDays,
+  getMonthBuckets,
   toKey,
   monthlyAverageScore,
+  yearlyCompletionRatio,
   getLevel,
   computeStreaks,
   formatDayShort,
 } from "@/lib/date";
 import { getCategory } from "@/lib/types";
+import { Button } from "@/components/ui/button";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Flame, Trophy } from "lucide-react";
@@ -66,8 +70,9 @@ export function Analytics({ initialHabits, initialCompletions }: AnalyticsProps)
     }
   }, [initialized, initialize, initialHabits, initialCompletions]);
 
-  const [cursor] = React.useState<Date>(new Date());
-  const [view, setView] = React.useState<"month" | "week">("month");
+  const [cursor] = React.useState<Date>(() => new Date());
+  const [yearCursor, setYearCursor] = React.useState<number>(new Date().getFullYear());
+  const [view, setView] = React.useState<"month" | "week" | "year">("month");
 
   const monthDays = React.useMemo(
     () => getMonthDays(cursor.getFullYear(), cursor.getMonth()),
@@ -123,8 +128,8 @@ export function Analytics({ initialHabits, initialCompletions }: AnalyticsProps)
   const level = getLevel(overallRate);
 
   // Heatmap (full year)
-  const year = cursor.getFullYear();
-  const yearDays = React.useMemo(() => getYearDays(year), [year]);
+  const heatYear = yearCursor;
+  const yearDays = React.useMemo(() => getYearDays(heatYear), [heatYear]);
 
   const heatData = yearDays.map((d) => {
     const done = sortedHabits.filter(
@@ -145,6 +150,23 @@ export function Analytics({ initialHabits, initialCompletions }: AnalyticsProps)
     weeks.push(heatData.slice(i, i + 7));
   }
 
+  // Yearly report computations
+  const yearOverallRate = yearlyCompletionRatio(completions, sortedHabits, yearCursor);
+  const monthBuckets = React.useMemo(() => getMonthBuckets(yearCursor), [yearCursor]);
+  const monthlyChartData = monthBuckets.map((monthDaysArr, m) => {
+    const pct = monthlyAverageScore(completions, sortedHabits, monthDaysArr);
+    return {
+      month: format(new Date(yearCursor, m, 1), "MMM"),
+      score: Math.round(pct),
+    };
+  });
+  const yearStreaks = sortedHabits.map((h) => ({
+    habit: h,
+    ...computeStreaks(h.id, completions, getYearDays(yearCursor)),
+  }));
+  const yearBestStreak = Math.max(0, ...yearStreaks.map((s) => s.best));
+  const yearLevel = getLevel(yearOverallRate);
+
   if (sortedHabits.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center rounded-lg border border-dashed py-20 text-center">
@@ -163,24 +185,54 @@ export function Analytics({ initialHabits, initialCompletions }: AnalyticsProps)
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Analytics</h1>
           <p className="text-sm text-muted-foreground">
-            Your progress for {format(cursor, "MMMM yyyy")}
+            {view === "year"
+              ? `Your progress for ${yearCursor}`
+              : `Your progress for ${format(cursor, "MMMM yyyy")}`}
           </p>
         </div>
-        <Tabs value={view} onValueChange={(v) => setView(v as "month" | "week")}>
-          <TabsList>
-            <TabsTrigger value="month">Month</TabsTrigger>
-            <TabsTrigger value="week">Week</TabsTrigger>
-          </TabsList>
-        </Tabs>
+        <div className="flex flex-wrap items-center gap-3">
+          {view === "year" && (
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setYearCursor((y) => y - 1)}
+                aria-label="Previous year"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <h2 className="min-w-20 text-center text-lg font-bold">
+                {yearCursor}
+              </h2>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setYearCursor((y) => y + 1)}
+                aria-label="Next year"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
+          <Tabs value={view} onValueChange={(v) => setView(v as "month" | "week" | "year")}>
+            <TabsList>
+              <TabsTrigger value="month">Month</TabsTrigger>
+              <TabsTrigger value="week">Week</TabsTrigger>
+              <TabsTrigger value="year">Year</TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
       </div>
 
       {/* Summary cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Monthly Completion</CardDescription>
+            <CardDescription>
+              {view === "year" ? "Yearly Completion" : "Monthly Completion"}
+            </CardDescription>
             <CardTitle className="text-3xl">
-              {Math.round(overallRate)}%
+              {Math.round(view === "year" ? yearOverallRate : overallRate)}%
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -196,15 +248,17 @@ export function Analytics({ initialHabits, initialCompletions }: AnalyticsProps)
             <CardTitle className="flex items-center gap-2 text-2xl">
               <span
                 className="rounded-md px-2 py-1 text-lg font-bold text-white"
-                style={{ backgroundColor: level.color }}
+                style={{
+                  backgroundColor: (view === "year" ? yearLevel : level).color,
+                }}
               >
-                {level.label}
+                {(view === "year" ? yearLevel : level).label}
               </span>
             </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-xs text-muted-foreground">
-              based on monthly average
+              based on {view === "year" ? "yearly" : "monthly"} average
             </p>
           </CardContent>
         </Card>
@@ -221,9 +275,14 @@ export function Analytics({ initialHabits, initialCompletions }: AnalyticsProps)
 
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Best Current Streak</CardDescription>
+            <CardDescription>
+              {view === "year" ? "Best Streak" : "Best Current Streak"}
+            </CardDescription>
             <CardTitle className="text-3xl">
-              {Math.max(0, ...streaks.map((s) => s.current))}🔥
+              {view === "year"
+                ? yearBestStreak
+                : Math.max(0, ...streaks.map((s) => s.current))}
+              🔥
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -232,7 +291,53 @@ export function Analytics({ initialHabits, initialCompletions }: AnalyticsProps)
         </Card>
       </div>
 
+      {/* Yearly month-by-month completion chart */}
+      {view === "year" && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Monthly Completion</CardTitle>
+            <CardDescription>
+              % of habits completed in each month of {yearCursor}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[300px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={monthlyChartData} margin={{ left: -10, right: 10 }}>
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    className="stroke-muted"
+                    vertical={false}
+                  />
+                  <XAxis
+                    dataKey="month"
+                    tick={{ fontSize: 12 }}
+                    className="fill-muted-foreground"
+                  />
+                  <YAxis
+                    domain={[0, 100]}
+                    tick={{ fontSize: 12 }}
+                    className="fill-muted-foreground"
+                  />
+                  <RTooltip
+                    contentStyle={{
+                      background: "hsl(var(--popover))",
+                      border: "1px solid hsl(var(--border))",
+                      borderRadius: 8,
+                      fontSize: 12,
+                    }}
+                    formatter={(value) => [`${Number(value)}%`, "Completion"]}
+                  />
+                  <Bar dataKey="score" radius={[4, 4, 0, 0]} fill="hsl(var(--primary))" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Per-habit bar chart */}
+      {view !== "year" && (
       <Card>
         <CardHeader>
           <CardTitle>Per-Habit Completion</CardTitle>
@@ -288,8 +393,10 @@ export function Analytics({ initialHabits, initialCompletions }: AnalyticsProps)
           </div>
         </CardContent>
       </Card>
+      )}
 
       {/* Daily score line chart */}
+      {view !== "year" && (
       <Card>
         <CardHeader>
           <CardTitle>Daily Score</CardTitle>
@@ -344,8 +451,10 @@ export function Analytics({ initialHabits, initialCompletions }: AnalyticsProps)
           </div>
         </CardContent>
       </Card>
+      )}
 
       {/* Streaks panel */}
+      {view !== "year" && (
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -390,13 +499,14 @@ export function Analytics({ initialHabits, initialCompletions }: AnalyticsProps)
           </div>
         </CardContent>
       </Card>
+      )}
 
       {/* Heatmap */}
       <Card>
         <CardHeader>
           <CardTitle>Yearly Heatmap</CardTitle>
           <CardDescription>
-            Completion density per day for {year}
+            Completion density per day for {heatYear}
           </CardDescription>
         </CardHeader>
         <CardContent>
