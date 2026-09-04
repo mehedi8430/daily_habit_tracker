@@ -34,10 +34,12 @@ export function NotesDialog({
 
   const [draft, setDraft] = React.useState("");
   const [saving, setSaving] = React.useState(false);
+  const [editing, setEditing] = React.useState(false);
 
   React.useEffect(() => {
     if (open) {
       setDraft(getNotes(habitId, date) ?? "");
+      setEditing(false);
     }
   }, [open, habitId, date, getNotes]);
 
@@ -46,7 +48,8 @@ export function NotesDialog({
     setSaving(true);
     try {
       await saveNotes(habitId, date, trimmed || null);
-      onOpenChange(false);
+      setDraft(trimmed);
+      setEditing(false);
     } catch (err) {
       toast.error(
         err instanceof Error ? err.message : "Failed to save notes"
@@ -56,29 +59,59 @@ export function NotesDialog({
     }
   };
 
+  const handleCancel = () => {
+    setDraft(getNotes(habitId, date) ?? "");
+    setEditing(false);
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>Notes</DialogTitle>
           <DialogDescription>
             {habitName} &mdash; {formatFullDate(date)}
           </DialogDescription>
         </DialogHeader>
-        <textarea
-          className="min-h-[120px] w-full rounded-md border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          placeholder="Add notes for this day..."
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          autoFocus
-        />
+        {editing ? (
+          <textarea
+            className="min-h-45 max-h-60 w-full resize-none overflow-y-auto rounded-md border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            placeholder="Add notes for this day..."
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            autoFocus
+          />
+        ) : (
+          <div className="max-h-60 min-h-45 overflow-y-auto rounded-md bg-background px-3 py-2 text-sm">
+            {draft ? (
+              <p className="whitespace-pre-wrap">{draft}</p>
+            ) : (
+              <p className="text-muted-foreground italic">
+                No notes yet for this day.
+              </p>
+            )}
+          </div>
+        )}
         <DialogFooter>
-          <Button variant="ghost" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button onClick={handleSave} disabled={saving}>
-            {saving ? "Saving..." : "Save"}
-          </Button>
+          {editing ? (
+            <>
+              <Button variant="ghost" onClick={handleCancel}>
+                Cancel
+              </Button>
+              <Button onClick={handleSave} disabled={saving}>
+                {saving ? "Saving..." : "Save"}
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button variant="ghost" onClick={() => onOpenChange(false)}>
+                Close
+              </Button>
+              <Button onClick={() => setEditing(true)}>
+                {draft ? "Edit" : "Add Notes"}
+              </Button>
+            </>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>
