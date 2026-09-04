@@ -19,6 +19,7 @@ function completionKey(habitId: string, date: Date): string {
 interface HabitState {
   habits: Habit[];
   completions: Record<string, boolean>;
+  notes: Record<string, string | null>;
   initialized: boolean;
   initialize: (habits: Habit[], completions: actions.CompletionRow[]) => void;
   addHabit: (data: { name: string; category: string }) => Promise<void>;
@@ -30,20 +31,26 @@ interface HabitState {
   reorderHabits: (ids: string[]) => Promise<void>;
   toggleCompletion: (habitId: string, date: Date) => Promise<void>;
   setCompletion: (habitId: string, date: Date, completed: boolean) => Promise<void>;
+  saveNotes: (habitId: string, date: Date, notes: string | null) => Promise<void>;
+  getNotes: (habitId: string, date: Date) => string | null;
   isCompleted: (habitId: string, date: Date) => boolean;
 }
 
 export const useHabitStore = create<HabitState>()((set, get) => ({
   habits: [],
   completions: {},
+  notes: {},
   initialized: false,
 
   initialize: (habits, completions) => {
     const completionsMap: Record<string, boolean> = {};
+    const notesMap: Record<string, string | null> = {};
     for (const c of completions) {
-      completionsMap[`${c.habit_id}__${c.date}`] = c.completed;
+      const key = `${c.habit_id}__${c.date}`;
+      completionsMap[key] = c.completed;
+      notesMap[key] = c.notes;
     }
-    set({ habits, completions: completionsMap, initialized: true });
+    set({ habits, completions: completionsMap, notes: notesMap, initialized: true });
   },
 
   addHabit: async (data) => {
@@ -85,11 +92,14 @@ export const useHabitStore = create<HabitState>()((set, get) => ({
   deleteHabit: async (id) => {
     const prev = get().habits;
     const prevCompletions = get().completions;
+    const prevNotes = get().notes;
     set((state) => {
       const completions = { ...state.completions };
+      const notes = { ...state.notes };
       for (const key of Object.keys(completions)) {
         if (key.startsWith(`${id}__`)) {
           delete completions[key];
+          delete notes[key];
         }
       }
       return {
@@ -97,11 +107,12 @@ export const useHabitStore = create<HabitState>()((set, get) => ({
           .filter((h) => h.id !== id)
           .map((h, i) => ({ ...h, order: i })),
         completions,
+        notes,
       };
     });
     const result = await actions.deleteHabit(id);
     if ("error" in result && result.error) {
-      set({ habits: prev, completions: prevCompletions });
+      set({ habits: prev, completions: prevCompletions, notes: prevNotes });
       throw new Error(result.error as string);
     }
   },
@@ -162,5 +173,25 @@ export const useHabitStore = create<HabitState>()((set, get) => ({
 
   isCompleted: (habitId, date) => {
     return !!get().completions[completionKey(habitId, date)];
+  },
+
+  saveNotes: async (habitId, date, notes) => {
+    const key = completionKey(habitId, date);
+    const prev = get().notes[key] ?? null;
+    set((state) => ({
+      notes: { ...state.notes, [key]: notes },
+    }));
+    const dateStr = toKey(date);
+    const result = await actions.saveNotes(habitId, dateStr, notes);
+    if ("error" in result && result.error) {
+      set((state) => ({
+        notes: { ...state.notes, [key]: prev },
+      }));
+      throw new Error(result.error as string);
+    }
+  },
+
+  getNotes: (habitId, date) => {
+    return get().notes[completionKey(habitId, date)] ?? null;
   },
 }));
