@@ -42,6 +42,7 @@ import { cn } from "@/lib/utils";
 import { Habit } from "@/lib/types";
 import { CompletionRow } from "@/app/actions";
 import { toast } from "sonner";
+import { NotesDialog } from "@/components/notes-dialog";
 
 function SortableRow({
   habit,
@@ -50,6 +51,7 @@ function SortableRow({
   toggle,
   onEdit,
   onDelete,
+  onOpenNotes,
   cols,
 }: {
   habit: Habit;
@@ -58,6 +60,7 @@ function SortableRow({
   toggle: (habitId: string, date: Date) => void;
   onEdit: (h: Habit) => void;
   onDelete: (h: Habit) => void;
+  onOpenNotes: (h: Habit, date: Date) => void;
   cols: string;
 }) {
   const {
@@ -99,9 +102,13 @@ function SortableRow({
         >
           <GripVertical className="h-4 w-4" />
         </button>
-        <span className="max-w-60 truncate font-medium" title={habit.name}>
+        <button
+          className="max-w-60 truncate text-left font-medium hover:underline"
+          title={`${habit.name} — click to add notes`}
+          onClick={() => onOpenNotes(habit, days[0])}
+        >
           {habit.name}
-        </span>
+        </button>
         <span
           className="h-2 w-2 shrink-0 rounded-full"
           style={{ backgroundColor: cat.color }}
@@ -190,6 +197,10 @@ export function CalendarGrid({ initialHabits, initialCompletions }: CalendarGrid
   const [editing, setEditing] = React.useState<Habit | null>(null);
   const [toDelete, setToDelete] = React.useState<Habit | null>(null);
   const [isMobile, setIsMobile] = React.useState(false);
+  const [notesDialog, setNotesDialog] = React.useState<{
+    habit: Habit;
+    date: Date;
+  } | null>(null);
 
   React.useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 640);
@@ -335,6 +346,7 @@ export function CalendarGrid({ initialHabits, initialCompletions }: CalendarGrid
                         toggle={toggleCompletion}
                         onEdit={openEdit}
                         onDelete={setToDelete}
+                        onOpenNotes={(habit, date) => setNotesDialog({ habit, date })}
                         cols={cols}
                       />
                     ))}
@@ -386,6 +398,14 @@ export function CalendarGrid({ initialHabits, initialCompletions }: CalendarGrid
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <NotesDialog
+        open={!!notesDialog}
+        onOpenChange={(o) => !o && setNotesDialog(null)}
+        habitId={notesDialog?.habit.id ?? ""}
+        habitName={notesDialog?.habit.name ?? ""}
+        date={notesDialog?.date ?? new Date()}
+      />
     </TooltipProvider>
   );
 }
