@@ -9,6 +9,7 @@ export interface CompletionRow {
   habit_id: string;
   date: string;
   completed: boolean;
+  notes: string | null;
 }
 
 export async function getInitialData() {
@@ -57,6 +58,7 @@ export async function getInitialData() {
       habit_id: c.habit_id as string,
       date: c.date as string,
       completed: c.completed as boolean,
+      notes: (c.notes as string) ?? null,
     })),
   };
 }
@@ -306,6 +308,57 @@ export async function setCompletion(
       habit_id: habitId,
       date,
       completed: true,
+    });
+
+    if (error) {
+      return { error: error.message };
+    }
+  }
+
+  revalidatePath("/");
+  revalidatePath("/analytics");
+  return { success: true };
+}
+
+export async function saveNotes(
+  habitId: string,
+  date: string,
+  notes: string | null
+) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  const { data: existing } = await supabase
+    .from("completions")
+    .select("id")
+    .eq("user_id", user.id)
+    .eq("habit_id", habitId)
+    .eq("date", date)
+    .single();
+
+  if (existing) {
+    const { error } = await supabase
+      .from("completions")
+      .update({ notes, updated_at: new Date().toISOString() })
+      .eq("id", existing.id)
+      .eq("user_id", user.id);
+
+    if (error) {
+      return { error: error.message };
+    }
+  } else {
+    const { error } = await supabase.from("completions").insert({
+      user_id: user.id,
+      habit_id: habitId,
+      date,
+      completed: false,
+      notes,
     });
 
     if (error) {
