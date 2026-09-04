@@ -221,14 +221,26 @@ export async function toggleCompletion(habitId: string, date: string) {
 
   if (existing) {
     if (existing.completed) {
-      const { error } = await supabase
-        .from("completions")
-        .delete()
-        .eq("id", existing.id)
-        .eq("user_id", user.id);
+      if (!existing.notes || existing.notes.trim() === "") {
+        const { error } = await supabase
+          .from("completions")
+          .delete()
+          .eq("id", existing.id)
+          .eq("user_id", user.id);
 
-      if (error) {
-        return { error: error.message };
+        if (error) {
+          return { error: error.message };
+        }
+      } else {
+        const { error } = await supabase
+          .from("completions")
+          .update({ completed: false, updated_at: new Date().toISOString() })
+          .eq("id", existing.id)
+          .eq("user_id", user.id);
+
+        if (error) {
+          return { error: error.message };
+        }
       }
     } else {
       const { error } = await supabase
@@ -282,15 +294,27 @@ export async function setCompletion(
     .single();
 
   if (!completed) {
-    const { error } = await supabase
-      .from("completions")
-      .delete()
-      .eq("user_id", user.id)
-      .eq("habit_id", habitId)
-      .eq("date", date);
+    if (existing && existing.notes && existing.notes.trim() !== "") {
+      const { error } = await supabase
+        .from("completions")
+        .update({ completed: false, updated_at: new Date().toISOString() })
+        .eq("id", existing.id)
+        .eq("user_id", user.id);
 
-    if (error) {
-      return { error: error.message };
+      if (error) {
+        return { error: error.message };
+      }
+    } else {
+      const { error } = await supabase
+        .from("completions")
+        .delete()
+        .eq("user_id", user.id)
+        .eq("habit_id", habitId)
+        .eq("date", date);
+
+      if (error) {
+        return { error: error.message };
+      }
     }
   } else if (existing) {
     const { error } = await supabase
