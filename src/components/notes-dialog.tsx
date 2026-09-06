@@ -66,23 +66,24 @@ export function NotesDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-3xl">
         <DialogHeader>
           <DialogTitle>Notes</DialogTitle>
           <DialogDescription>
-            {habitName} &mdash; {formatFullDate(date)}
+            {habitName} 
+            {/* &mdash; {formatFullDate(date)} */}
           </DialogDescription>
         </DialogHeader>
         {editing ? (
           <textarea
-            className="min-h-45 max-h-60 w-full resize-none overflow-y-auto rounded-md border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="min-h-70 max-h-80 w-full resize-none overflow-y-auto rounded-md border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             placeholder="Add notes for this day..."
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             autoFocus
           />
         ) : (
-          <div className="max-h-60 min-h-45 overflow-y-auto rounded-md bg-background px-3 py-2 text-sm">
+          <div className="max-h-70 min-h-45 overflow-y-auto rounded-md bg-background px-3 py-2 text-sm">
             {draft ? (
               <p className="whitespace-pre-wrap">{draft}</p>
             ) : (
