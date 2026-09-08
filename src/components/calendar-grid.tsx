@@ -15,7 +15,8 @@ import {
   arrayMove,
 } from "@dnd-kit/sortable";
 import { format, addMonths, subMonths, isToday } from "date-fns";
-import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, CalendarDays } from "lucide-react";
+import Link from "next/link";
 import { useHabitStore } from "@/lib/store";
 import { getMonthDays, toKey } from "@/lib/date";
 import { Button } from "@/components/ui/button";
@@ -145,9 +146,16 @@ export function CalendarGrid({ initialHabits, initialCompletions }: CalendarGrid
               Today
             </Button>
           </div>
-          <Button onClick={openAdd} className="gap-2">
-            <Plus className="h-4 w-4" /> Add Habit
-          </Button>
+          <div className="flex items-center gap-2">
+            <Link href="/planner">
+              <Button variant="outline" className="gap-2">
+                <CalendarDays className="h-4 w-4" /> Daily Planner
+              </Button>
+            </Link>
+            <Button onClick={openAdd} className="gap-2">
+              <Plus className="h-4 w-4" /> Add Habit
+            </Button>
+          </div>
         </div>
 
         {sortedHabits.length === 0 ? (
