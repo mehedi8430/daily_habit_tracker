@@ -143,7 +143,8 @@ export function TopicsPanel() {
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
-    const ids = displayedTopics.map((t) => t.id);
+    const sorted = [...topics].sort((a, b) => a.position - b.position);
+    const ids = sorted.map((t) => t.id);
     const oldIndex = ids.indexOf(active.id as string);
     const newIndex = ids.indexOf(over.id as string);
     reorderTopics(arrayMove(ids, oldIndex, newIndex));
