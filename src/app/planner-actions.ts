@@ -105,7 +105,7 @@ export async function createTopic(data: {
 
 export async function updateTopic(
   id: string,
-  data: { title?: string; description?: string; is_active?: boolean }
+  data: { title?: string; description?: string | null; is_active?: boolean }
 ): Promise<{ success: true; topic: Topic } | { error: string }> {
   const supabase = await createClient();
   const {

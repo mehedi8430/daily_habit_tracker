@@ -93,10 +93,7 @@ export const usePlannerStore = create<PlannerState>()((set, get) => ({
     set((state) => ({
       topics: state.topics.map((t) => (t.id === id ? { ...t, ...updates } : t)),
     }));
-    const result = await plannerActions.updateTopic(
-      id,
-      updates as { title?: string; description?: string; is_active?: boolean }
-    );
+    const result = await plannerActions.updateTopic(id, updates);
     if ("error" in result) {
       set({ topics: prev });
       throw new Error(result.error);
