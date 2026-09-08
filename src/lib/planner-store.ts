@@ -256,13 +256,11 @@ export const usePlannerStore = create<PlannerState>()((set, get) => ({
 
   carryOverTask: async (id, targetDate) => {
     let affectedDate = "";
-    let prevTasks: DailyTask[] = [];
     let originalTask: DailyTask | null = null;
     for (const [date, tasks] of Object.entries(get().tasksByDate)) {
       const found = tasks.find((t) => t.id === id);
       if (found) {
         affectedDate = date;
-        prevTasks = [...tasks];
         originalTask = found;
         break;
       }
