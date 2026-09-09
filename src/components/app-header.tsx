@@ -3,7 +3,15 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Moon, Sun, CalendarDays, BarChart3, LogOut } from "lucide-react";
+import {
+  Moon,
+  Sun,
+  CalendarDays,
+  BarChart3,
+  LogOut,
+  ClipboardList,
+  ListTodo,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/components/theme-provider";
 import { cn } from "@/lib/utils";
@@ -29,6 +37,7 @@ export function AppHeader({ isAuthorized }: { isAuthorized: boolean }) {
 
   const links = [
     { href: "/", label: "Calendar", icon: CalendarDays },
+    { href: "/planner", label: "Daily Planner", icon: ListTodo },
     { href: "/analytics", label: "Analytics", icon: BarChart3 },
   ];
 

@@ -15,12 +15,13 @@ import {
   arrayMove,
 } from "@dnd-kit/sortable";
 import { format, addMonths, subMonths, isToday } from "date-fns";
-import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
-import { useHabitStore } from "@/lib/store";
+import { ChevronLeft, ChevronRight, Plus, CalendarDays } from "lucide-react";
+import Link from "next/link";
+import { useHabitStore } from "@/stores/store";
 import { getMonthDays, toKey } from "@/lib/date";
 import { Button } from "@/components/ui/button";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { HabitForm } from "@/components/habit-form";
+import { HabitForm } from "@/components/habits/habit-form";
 import {
   Dialog,
   DialogContent,
@@ -31,10 +32,10 @@ import {
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { Habit } from "@/lib/types";
-import { CompletionRow } from "@/app/actions";
+import { CompletionRow } from "@/app/actions/habit.actions";
 import { toast } from "sonner";
-import { NotesDialog } from "@/components/notes-dialog";
-import { SortableRow } from "@/components/sortable-row";
+import { NotesDialog } from "@/components/habits/notes-dialog";
+import { SortableRow } from "@/components/habits/sortable-row";
 
 interface CalendarGridProps {
   initialHabits: Habit[];
@@ -145,9 +146,16 @@ export function CalendarGrid({ initialHabits, initialCompletions }: CalendarGrid
               Today
             </Button>
           </div>
-          <Button onClick={openAdd} className="gap-2">
-            <Plus className="h-4 w-4" /> Add Habit
-          </Button>
+          <div className="flex items-center gap-2">
+            <Link href="/planner">
+              <Button variant="outline" className="gap-2">
+                <CalendarDays className="h-4 w-4" /> Daily Planner
+              </Button>
+            </Link>
+            <Button onClick={openAdd} className="gap-2">
+              <Plus className="h-4 w-4" /> Add Habit
+            </Button>
+          </div>
         </div>
 
         {sortedHabits.length === 0 ? (

@@ -1,5 +1,5 @@
-import { Analytics } from "@/components/analytics";
-import { getInitialData } from "@/app/actions";
+import { Analytics } from "@/components/analytics/analytics";
+import { getInitialData } from "@/app/actions/habit.actions";
 
 export default async function AnalyticsPage() {
   const data = await getInitialData();

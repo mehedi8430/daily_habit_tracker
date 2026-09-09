@@ -18,7 +18,7 @@ import {
   ResponsiveContainer,
   Cell,
 } from "recharts";
-import { useHabitStore } from "@/lib/store";
+import { useHabitStore } from "@/stores/store";
 import {
   getMonthDays,
   getYearDays,
@@ -37,7 +37,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Flame, Trophy } from "lucide-react";
 import { Habit } from "@/lib/types";
-import { CompletionRow } from "@/app/actions";
+import { CompletionRow } from "@/app/actions/habit.actions";
 
 const HEATMAP_LEVELS = [
   "rgba(22,163,74,0.12)",
