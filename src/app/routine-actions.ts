@@ -32,7 +32,7 @@ async function getUser() {
 export async function getRoutineTasks(date: string): Promise<{ tasks: RoutineTask[] }> {
   const { supabase, user } = await getUser();
   const { data, error } = await supabase
-    .from("routine_tasks")
+    .from("daily_planner_tasks")
     .select("*")
     .eq("user_id", user.id)
     .eq("date", date)
@@ -53,13 +53,13 @@ export async function createRoutineTask(data: {
 }): Promise<{ task: RoutineTask } | { error: string }> {
   const { supabase, user } = await getUser();
   const { count } = await supabase
-    .from("routine_tasks")
+    .from("daily_planner_tasks")
     .select("id", { count: "exact", head: true })
     .eq("user_id", user.id)
     .eq("date", data.date);
 
   const { data: task, error } = await supabase
-    .from("routine_tasks")
+    .from("daily_planner_tasks")
     .insert({
       user_id: user.id,
       title: data.title.trim(),
@@ -88,7 +88,7 @@ export async function updateRoutineTask(
   if (updates.notes !== undefined) values.notes = updates.notes;
 
   const { data: task, error } = await supabase
-    .from("routine_tasks")
+    .from("daily_planner_tasks")
     .update(values)
     .eq("id", id)
     .eq("user_id", user.id)
@@ -103,7 +103,7 @@ export async function updateRoutineTask(
 export async function deleteRoutineTask(id: string): Promise<{ error?: string }> {
   const { supabase, user } = await getUser();
   const { error } = await supabase
-    .from("routine_tasks")
+    .from("daily_planner_tasks")
     .delete()
     .eq("id", id)
     .eq("user_id", user.id);
