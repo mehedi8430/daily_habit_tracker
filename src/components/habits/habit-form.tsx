@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useHabitStore } from "@/lib/store";
+import { useHabitStore } from "@/stores/store";
 import { Habit, CATEGORIES } from "@/lib/types";
 import {
   Dialog,

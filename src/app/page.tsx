@@ -1,5 +1,5 @@
-import { CalendarGrid } from "@/components/calendar-grid";
-import { getInitialData } from "@/app/actions";
+import { CalendarGrid } from "@/components/habits/calendar-grid";
+import { getInitialData } from "@/app/actions/habit.actions";
 
 export default async function HomePage() {
   const data = await getInitialData();

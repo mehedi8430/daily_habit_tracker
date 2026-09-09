@@ -1,9 +1,9 @@
 "use client";
 
 import { create } from "zustand";
-import { Habit } from "./types";
-import { toKey } from "./date";
-import * as actions from "@/app/actions";
+import { Habit } from "../lib/types";
+import { toKey } from "../lib/date";
+import * as actions from "@/app/actions/habit.actions";
 
 function genId(): string {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {

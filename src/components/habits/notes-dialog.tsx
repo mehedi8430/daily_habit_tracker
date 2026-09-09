@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { formatFullDate } from "@/lib/date";
-import { useHabitStore } from "@/lib/store";
+import { useHabitStore } from "@/stores/store";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,

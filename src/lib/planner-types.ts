@@ -1,27 +1,17 @@
-export interface Topic {
-  id: string;
-  userId: string;
-  habitId: string | null;
-  title: string;
-  description: string | null;
-  position: number;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
+export type PlannerStatus = "planned" | "in_progress" | "done" | "skipped";
+export type PlannerPriority = "low" | "medium" | "high";
 
-export interface DailyTask {
+export interface PlannerTask {
   id: string;
   userId: string;
   title: string;
-  habitId: string | null;
-  topicId: string | null;
   date: string;
-  status: "pending" | "in_progress" | "completed" | "skipped";
+  startTime: string | null;
+  durationMinutes: number | null;
+  priority: PlannerPriority;
+  status: PlannerStatus;
   notes: string | null;
   position: number;
   createdAt: string;
   updatedAt: string;
 }
-
-export type TaskStatus = DailyTask["status"];

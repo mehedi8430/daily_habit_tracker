@@ -3,9 +3,9 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import type { RoutinePriority, RoutineStatus, RoutineTask } from "@/lib/routine-types";
+import type { PlannerPriority, PlannerStatus, PlannerTask } from "@/lib/planner-types";
 
-function mapTask(task: Record<string, unknown>): RoutineTask {
+function mapTask(task: Record<string, unknown>): PlannerTask {
   return {
     id: task.id as string,
     userId: task.user_id as string,
@@ -13,8 +13,8 @@ function mapTask(task: Record<string, unknown>): RoutineTask {
     date: task.date as string,
     startTime: (task.start_time as string) ?? null,
     durationMinutes: (task.duration_minutes as number) ?? null,
-    priority: task.priority as RoutinePriority,
-    status: task.status as RoutineStatus,
+    priority: task.priority as PlannerPriority,
+    status: task.status as PlannerStatus,
     notes: (task.notes as string) ?? null,
     position: task.position as number,
     createdAt: task.created_at as string,
@@ -29,7 +29,7 @@ async function getUser() {
   return { supabase, user };
 }
 
-export async function getRoutineTasks(date: string): Promise<{ tasks: RoutineTask[] }> {
+export async function getPlannerTasks(date: string): Promise<{ tasks: PlannerTask[] }> {
   const { supabase, user } = await getUser();
   const { data, error } = await supabase
     .from("daily_planner_tasks")
@@ -39,18 +39,18 @@ export async function getRoutineTasks(date: string): Promise<{ tasks: RoutineTas
     .order("start_time", { ascending: true, nullsFirst: false })
     .order("position", { ascending: true });
 
-  if (error) throw new Error(`Failed to fetch routine tasks: ${error.message}`);
+  if (error) throw new Error(`Failed to fetch planner tasks: ${error.message}`);
   return { tasks: (data ?? []).map((task) => mapTask(task as Record<string, unknown>)) };
 }
 
-export async function createRoutineTask(data: {
+export async function createPlannerTask(data: {
   title: string;
   date: string;
   startTime?: string;
   durationMinutes?: number;
-  priority: RoutinePriority;
+  priority: PlannerPriority;
   notes?: string;
-}): Promise<{ task: RoutineTask } | { error: string }> {
+}): Promise<{ task: PlannerTask } | { error: string }> {
   const { supabase, user } = await getUser();
   const { count } = await supabase
     .from("daily_planner_tasks")
@@ -74,14 +74,14 @@ export async function createRoutineTask(data: {
     .single();
 
   if (error) return { error: error.message };
-  revalidatePath("/routine");
+  revalidatePath("/planner");
   return { task: mapTask(task as Record<string, unknown>) };
 }
 
-export async function updateRoutineTask(
+export async function updatePlannerTask(
   id: string,
-  updates: { status?: RoutineStatus; notes?: string | null }
-): Promise<{ task: RoutineTask } | { error: string }> {
+  updates: { status?: PlannerStatus; notes?: string | null }
+): Promise<{ task: PlannerTask } | { error: string }> {
   const { supabase, user } = await getUser();
   const values: Record<string, unknown> = { updated_at: new Date().toISOString() };
   if (updates.status !== undefined) values.status = updates.status;
@@ -96,11 +96,11 @@ export async function updateRoutineTask(
     .single();
 
   if (error) return { error: error.message };
-  revalidatePath("/routine");
+  revalidatePath("/planner");
   return { task: mapTask(task as Record<string, unknown>) };
 }
 
-export async function deleteRoutineTask(id: string): Promise<{ error?: string }> {
+export async function deletePlannerTask(id: string): Promise<{ error?: string }> {
   const { supabase, user } = await getUser();
   const { error } = await supabase
     .from("daily_planner_tasks")
@@ -108,6 +108,6 @@ export async function deleteRoutineTask(id: string): Promise<{ error?: string }>
     .eq("id", id)
     .eq("user_id", user.id);
   if (error) return { error: error.message };
-  revalidatePath("/routine");
+  revalidatePath("/planner");
   return {};
 }

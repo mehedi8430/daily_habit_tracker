@@ -37,8 +37,7 @@ export function AppHeader({ isAuthorized }: { isAuthorized: boolean }) {
 
   const links = [
     { href: "/", label: "Calendar", icon: CalendarDays },
-    { href: "/planner", label: "Planner", icon: ClipboardList },
-    { href: "/routine", label: "Daily Routine", icon: ListTodo },
+    { href: "/planner", label: "Daily Planner", icon: ListTodo },
     { href: "/analytics", label: "Analytics", icon: BarChart3 },
   ];
 
