@@ -1,6 +1,6 @@
 import { format } from "date-fns";
 import { redirect } from "next/navigation";
-import { PlannerPage } from "@/components/planner/planner-page";
+import { PlannerPage } from "@/app/planner/_components/planner-page";
 import { getPlannerTasks } from "@/app/actions/planner.actions";
 import { createClient } from "@/lib/supabase/server";
 
