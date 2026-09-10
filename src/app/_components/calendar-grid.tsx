@@ -21,7 +21,7 @@ import { useHabitStore } from "@/stores/store";
 import { getMonthDays, toKey } from "@/lib/date";
 import { Button } from "@/components/ui/button";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { HabitForm } from "@/components/habits/habit-form";
+import { HabitForm } from "@/app/_components/habit-form";
 import {
   Dialog,
   DialogContent,
@@ -34,15 +34,18 @@ import { cn } from "@/lib/utils";
 import { Habit } from "@/lib/types";
 import { CompletionRow } from "@/app/actions/habit.actions";
 import { toast } from "sonner";
-import { NotesDialog } from "@/components/habits/notes-dialog";
-import { SortableRow } from "@/components/habits/sortable-row";
+import { NotesDialog } from "@/app/_components/notes-dialog";
+import { SortableRow } from "@/app/_components/sortable-row";
 
 interface CalendarGridProps {
   initialHabits: Habit[];
   initialCompletions: CompletionRow[];
 }
 
-export function CalendarGrid({ initialHabits, initialCompletions }: CalendarGridProps) {
+export function CalendarGrid({
+  initialHabits,
+  initialCompletions,
+}: CalendarGridProps) {
   const habits = useHabitStore((s) => s.habits);
   const completions = useHabitStore((s) => s.completions);
   const initialized = useHabitStore((s) => s.initialized);
@@ -75,17 +78,17 @@ export function CalendarGrid({ initialHabits, initialCompletions }: CalendarGrid
   }, []);
 
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
   );
 
   const days = React.useMemo(
     () => getMonthDays(cursor.getFullYear(), cursor.getMonth()),
-    [cursor]
+    [cursor],
   );
 
   const sortedHabits = React.useMemo(
     () => [...habits].sort((a, b) => a.order - b.order),
-    [habits]
+    [habits],
   );
 
   const habitCol = isMobile ? 180 : 340;
@@ -177,7 +180,7 @@ export function CalendarGrid({ initialHabits, initialCompletions }: CalendarGrid
                     key={toKey(d)}
                     className={cn(
                       "flex flex-col items-center justify-center border-b border-r py-2 text-xs",
-                      todayCol && "bg-primary/10"
+                      todayCol && "bg-primary/10",
                     )}
                   >
                     <span className="font-semibold uppercase text-muted-foreground">
@@ -186,7 +189,8 @@ export function CalendarGrid({ initialHabits, initialCompletions }: CalendarGrid
                     <span
                       className={cn(
                         "mt-0.5 flex h-7 w-7 items-center justify-center rounded-full text-sm",
-                        todayCol && "bg-primary font-bold text-primary-foreground"
+                        todayCol &&
+                          "bg-primary font-bold text-primary-foreground",
                       )}
                     >
                       {format(d, "d")}
@@ -218,7 +222,9 @@ export function CalendarGrid({ initialHabits, initialCompletions }: CalendarGrid
                         toggle={toggleCompletion}
                         onEdit={openEdit}
                         onDelete={setToDelete}
-                        onOpenNotes={(habit, date) => setNotesDialog({ habit, date })}
+                        onOpenNotes={(habit, date) =>
+                          setNotesDialog({ habit, date })
+                        }
                         cols={cols}
                       />
                     ))}
@@ -230,17 +236,10 @@ export function CalendarGrid({ initialHabits, initialCompletions }: CalendarGrid
         )}
       </div>
 
-      <HabitForm
-        open={formOpen}
-        onOpenChange={setFormOpen}
-        habit={editing}
-      />
+      <HabitForm open={formOpen} onOpenChange={setFormOpen} habit={editing} />
 
-{/* Delete habi alert dialog */}
-      <Dialog
-        open={!!toDelete}
-        onOpenChange={(o) => !o && setToDelete(null)}
-      >
+      {/* Delete habi alert dialog */}
+      <Dialog open={!!toDelete} onOpenChange={(o) => !o && setToDelete(null)}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Delete habit?</DialogTitle>
@@ -262,7 +261,11 @@ export function CalendarGrid({ initialHabits, initialCompletions }: CalendarGrid
                   await deleteHabit(toDelete.id);
                   setToDelete(null);
                 } catch (err) {
-                  toast.error(err instanceof Error ? err.message : "Failed to delete habit");
+                  toast.error(
+                    err instanceof Error
+                      ? err.message
+                      : "Failed to delete habit",
+                  );
                 }
               }}
             >

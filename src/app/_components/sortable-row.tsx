@@ -3,7 +3,8 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { isToday } from "date-fns";
-import { GripVertical, Pencil, Trash2 } from "lucide-react";
+import { GripVertical, MessageSquare, Pencil, Trash2 } from "lucide-react";
+import Link from "next/link";
 import { getCategory, Habit } from "@/lib/types";
 import { toKey, formatFullDate } from "@/lib/date";
 import { HabitCheckbox } from "@/components/ui/habit-checkbox";
@@ -73,19 +74,29 @@ export function SortableRow({
         >
           <GripVertical className="h-4 w-4" />
         </button>
-        <button
+        <Link
+          href={`/habits/${habit.id}/topics`}
           className="max-w-60 truncate text-left font-medium hover:underline"
-          title={`${habit.name} — click to add notes`}
-          onClick={() => onOpenNotes(habit, days[0])}
+          title={`${habit.name} — manage topics`}
         >
           {habit.name}
-        </button>
+        </Link>
         <span
           className="h-2 w-2 shrink-0 rounded-full"
           style={{ backgroundColor: cat.color }}
           title={cat.label}
         />
         <div className="ml-auto flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 data-[open=true]:opacity-100 [&:hover]:opacity-100">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7"
+            onClick={() => onOpenNotes(habit, days[0])}
+            aria-label="Open notes"
+            title="Open notes"
+          >
+            <MessageSquare className="h-3.5 w-3.5" />
+          </Button>
           <Button
             variant="ghost"
             size="icon"

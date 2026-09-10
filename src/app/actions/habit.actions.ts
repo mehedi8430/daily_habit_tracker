@@ -49,6 +49,7 @@ export async function getInitialData() {
     habits: (habitsResult.data || []).map((h: Record<string, unknown>) => ({
       id: h.id as string,
       name: h.name as string,
+      goal: (h.goal as string) ?? "",
       emoji: h.emoji as string,
       category: h.category as string,
       order: (h.sort_order as number) ?? 0,
@@ -66,6 +67,7 @@ export async function getInitialData() {
 export async function addHabit(data: {
   name: string;
   category: string;
+  goal: string;
 }): Promise<{ success: true; habit: Habit } | { error: string }> {
   const supabase = await createClient();
   const {
@@ -96,6 +98,7 @@ export async function addHabit(data: {
       user_id: user.id,
       name: data.name,
       category: data.category,
+      goal: data.goal,
       sort_order: nextOrder,
     })
     .select()
@@ -112,6 +115,7 @@ export async function addHabit(data: {
     habit: {
       id: created.id as string,
       name: created.name as string,
+      goal: (created.goal as string) ?? "",
       emoji: created.emoji as string,
       category: created.category as string,
       order: (created.sort_order as number) ?? 0,
@@ -122,7 +126,7 @@ export async function addHabit(data: {
 
 export async function updateHabit(
   id: string,
-  data: { name: string; category: string }
+  data: { name: string; category: string; goal: string }
 ) {
   const supabase = await createClient();
   const {
@@ -138,6 +142,7 @@ export async function updateHabit(
     .update({
       name: data.name,
       category: data.category,
+      goal: data.goal,
     })
     .eq("id", id)
     .eq("user_id", user.id);
@@ -394,3 +399,4 @@ export async function saveNotes(
   revalidatePath("/analytics");
   return { success: true };
 }
+

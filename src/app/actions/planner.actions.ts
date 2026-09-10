@@ -80,10 +80,21 @@ export async function createPlannerTask(data: {
 
 export async function updatePlannerTask(
   id: string,
-  updates: { status?: PlannerStatus; notes?: string | null }
+  updates: {
+    title?: string;
+    startTime?: string | null;
+    durationMinutes?: number | null;
+    priority?: PlannerPriority;
+    status?: PlannerStatus;
+    notes?: string | null;
+  }
 ): Promise<{ task: PlannerTask } | { error: string }> {
   const { supabase, user } = await getUser();
   const values: Record<string, unknown> = { updated_at: new Date().toISOString() };
+  if (updates.title !== undefined) values.title = updates.title.trim();
+  if (updates.startTime !== undefined) values.start_time = updates.startTime || null;
+  if (updates.durationMinutes !== undefined) values.duration_minutes = updates.durationMinutes || null;
+  if (updates.priority !== undefined) values.priority = updates.priority;
   if (updates.status !== undefined) values.status = updates.status;
   if (updates.notes !== undefined) values.notes = updates.notes;
 
@@ -110,4 +121,50 @@ export async function deletePlannerTask(id: string): Promise<{ error?: string }>
   if (error) return { error: error.message };
   revalidatePath("/planner");
   return {};
+}
+
+export async function reorderPlannerTasks(ids: string[]): Promise<{ success: true } | { error: string }> {
+  const { supabase, user } = await getUser();
+  const updates = ids.map((id, index) =>
+    supabase
+      .from("daily_planner_tasks")
+      .update({ position: index, updated_at: new Date().toISOString() })
+      .eq("id", id)
+      .eq("user_id", user.id),
+  );
+  const results = await Promise.all(updates);
+  const err = results.find((r) => r.error);
+  if (err) return { error: err.error!.message };
+  revalidatePath("/planner");
+  return { success: true };
+}
+
+export async function movePlannerTaskToDate(
+  id: string,
+  date: string
+): Promise<{ task: PlannerTask } | { error: string }> {
+  const { supabase, user } = await getUser();
+
+  const { count } = await supabase
+    .from("daily_planner_tasks")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", user.id)
+    .eq("date", date);
+
+  const { data: task, error } = await supabase
+    .from("daily_planner_tasks")
+    .update({
+      date,
+      status: "planned",
+      position: count ?? 0,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", id)
+    .eq("user_id", user.id)
+    .select()
+    .single();
+
+  if (error) return { error: error.message };
+  revalidatePath("/planner");
+  return { task: mapTask(task as Record<string, unknown>) };
 }

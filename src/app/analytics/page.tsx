@@ -1,4 +1,4 @@
-import { Analytics } from "@/components/analytics/analytics";
+import { Analytics } from "@/app/analytics/_components/analytics";
 import { getInitialData } from "@/app/actions/habit.actions";
 
 export default async function AnalyticsPage() {
