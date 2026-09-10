@@ -85,7 +85,7 @@ export function PlannerPage({ initialTasks, today }: PlannerPageProps) {
   };
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6 p-4 sm:p-8">
+    <div className="mx-auto max-w-7xl space-y-6 p-4 sm:p-8">
       <header className="flex flex-col gap-5 border-b pb-6 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <div className="mb-3 flex items-center gap-2 text-sm text-muted-foreground">
@@ -104,30 +104,36 @@ export function PlannerPage({ initialTasks, today }: PlannerPageProps) {
         </div>
       </header>
 
-      <section className="grid gap-3 sm:grid-cols-3">
-        <div className="rounded-lg border bg-card p-4"><p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Completed</p><p className="mt-1 text-2xl font-bold">{completedCount}<span className="text-base font-normal text-muted-foreground">/{tasks.length}</span></p></div>
-        <div className="rounded-lg border bg-card p-4"><p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Remaining</p><p className="mt-1 text-2xl font-bold">{activeCount}</p><p className="text-xs text-muted-foreground">planned or in progress</p></div>
-        <div className="rounded-lg border bg-card p-4"><p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Planned time</p><p className="mt-1 text-2xl font-bold">{scheduledMinutes}<span className="text-base font-normal text-muted-foreground"> min</span></p><p className="text-xs text-muted-foreground">from task estimates</p></div>
-      </section>
+      <div className="grid gap-6 lg:grid-cols-[16rem_minmax(0,1fr)]">
+        <aside className="space-y-3">
+          <div className="grid gap-3">
+            <div className="rounded-lg border bg-card p-4"><p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Completed</p><p className="mt-1 text-2xl font-bold">{completedCount}<span className="text-base font-normal text-muted-foreground">/{tasks.length}</span></p></div>
+            <div className="rounded-lg border bg-card p-4"><p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Remaining</p><p className="mt-1 text-2xl font-bold">{activeCount}</p><p className="text-xs text-muted-foreground">planned or in progress</p></div>
+            <div className="rounded-lg border bg-card p-4"><p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Planned time</p><p className="mt-1 text-2xl font-bold">{scheduledMinutes}<span className="text-base font-normal text-muted-foreground"> min</span></p><p className="text-xs text-muted-foreground">from task estimates</p></div>
+          </div>
+        </aside>
 
-      <NewTaskForm date={selectedDate} onCreated={(task) => setTasks((current) => [...current, task])} />
+        <div className="space-y-6">
+          <NewTaskForm date={selectedDate} onCreated={(task) => setTasks((current) => [...current, task])} />
 
-      <section aria-live="polite" className="space-y-3">
-        <div className="flex items-center justify-between">
-          <div><h2 className="text-lg font-semibold">Timeline</h2><p className="text-sm text-muted-foreground">Click the status circle to move a task forward.</p></div>
+          <section aria-live="polite" className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div><h2 className="text-lg font-semibold">Timeline</h2><p className="text-sm text-muted-foreground">Click the status circle to move a task forward.</p></div>
+            </div>
+            {sortedTasks.length === 0 ? (
+              <div className="rounded-xl border border-dashed px-6 py-16 text-center">
+                <CheckCircle2 className="mx-auto mb-3 h-8 w-8 text-muted-foreground" />
+                <h3 className="font-semibold">Nothing scheduled yet</h3>
+                <p className="mt-1 text-sm text-muted-foreground">Start with the one task that would make this day meaningful.</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {sortedTasks.map((task) => <TaskRow key={task.id} task={task} onStatusChange={updateStatus} onDelete={deleteTask} />)}
+              </div>
+            )}
+          </section>
         </div>
-        {sortedTasks.length === 0 ? (
-          <div className="rounded-xl border border-dashed px-6 py-16 text-center">
-            <CheckCircle2 className="mx-auto mb-3 h-8 w-8 text-muted-foreground" />
-            <h3 className="font-semibold">Nothing scheduled yet</h3>
-            <p className="mt-1 text-sm text-muted-foreground">Start with the one task that would make this day meaningful.</p>
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {sortedTasks.map((task) => <TaskRow key={task.id} task={task} onStatusChange={updateStatus} onDelete={deleteTask} />)}
-          </div>
-        )}
-      </section>
+      </div>
 
       <footer className="flex items-center gap-2 rounded-lg bg-muted/50 px-4 py-3 text-xs text-muted-foreground">
         <Clock3 className="h-4 w-4 shrink-0" />
