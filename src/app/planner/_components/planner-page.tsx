@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { addDays, format, isToday, parseISO } from "date-fns";
+import { addDays, format, isToday, isTomorrow, isYesterday, parseISO } from "date-fns";
 import {
   CalendarDays,
   CheckCircle2,
@@ -10,10 +10,19 @@ import {
   Clock3,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
 import {
   deletePlannerTask,
   getPlannerTasks,
+  movePlannerTaskToDate,
   updatePlannerTask,
 } from "@/app/actions/planner.actions";
 import type { PlannerStatus, PlannerTask } from "@/lib/planner-types";
@@ -32,13 +41,18 @@ function dateKey(date: Date): string {
 export function PlannerPage({ initialTasks, today }: PlannerPageProps) {
   const [selectedDate, setSelectedDate] = React.useState(today);
   const [tasks, setTasks] = React.useState(initialTasks);
+  const [lastLoadedDate, setLastLoadedDate] = React.useState(today);
+  const [toDelete, setToDelete] = React.useState<PlannerTask | null>(null);
 
   React.useEffect(() => {
-    if (selectedDate === today) return;
+    if (selectedDate === lastLoadedDate) return;
     let cancelled = false;
     getPlannerTasks(selectedDate)
       .then((result) => {
-        if (!cancelled) setTasks(result.tasks);
+        if (!cancelled) {
+          setTasks(result.tasks);
+          setLastLoadedDate(selectedDate);
+        }
       })
       .catch((error) => {
         if (!cancelled) toast.error(error instanceof Error ? error.message : "Failed to load planner");
@@ -46,7 +60,7 @@ export function PlannerPage({ initialTasks, today }: PlannerPageProps) {
     return () => {
       cancelled = true;
     };
-  }, [selectedDate, today]);
+  }, [selectedDate, lastLoadedDate]);
 
   const date = parseISO(`${selectedDate}T12:00:00`);
   const completedCount = tasks.filter((task) => task.status === "done").length;
@@ -74,13 +88,24 @@ export function PlannerPage({ initialTasks, today }: PlannerPageProps) {
   };
 
   const deleteTask = async (task: PlannerTask) => {
-    if (!window.confirm(`Delete “${task.title}”?`)) return;
     const previous = tasks;
     setTasks((current) => current.filter((item) => item.id !== task.id));
     const result = await deletePlannerTask(task.id);
     if (result.error) {
       setTasks(previous);
       toast.error(result.error);
+    }
+  };
+
+  const moveTaskToNextDay = async (task: PlannerTask) => {
+    const previous = tasks;
+    setTasks((current) => current.filter((item) => item.id !== task.id));
+    const result = await movePlannerTaskToDate(task.id, dateKey(addDays(date, 1)));
+    if ("error" in result) {
+      setTasks(previous);
+      toast.error(result.error);
+    } else {
+      toast.success("Task moved to tomorrow");
     }
   };
 
@@ -99,7 +124,7 @@ export function PlannerPage({ initialTasks, today }: PlannerPageProps) {
         </div>
         <div className="flex items-center gap-1 rounded-lg border bg-card p-1">
           <Button variant="ghost" size="icon" onClick={() => changeDate(-1)} aria-label="Previous day" title="Previous day"><ChevronLeft className="h-4 w-4" /></Button>
-          <Button variant={isToday(date) ? "secondary" : "ghost"} size="sm" onClick={() => setSelectedDate(today)}>Today</Button>
+          <Button variant={isToday(date) ? "secondary" : "ghost"} size="sm" onClick={() => setSelectedDate(today)}>{isToday(date) ? "Today" : isTomorrow(date) ? "Tomorrow" : isYesterday(date) ? "Yesterday" : format(date, "EEE, MMM d")}</Button>
           <Button variant="ghost" size="icon" onClick={() => changeDate(1)} aria-label="Next day" title="Next day"><ChevronRight className="h-4 w-4" /></Button>
         </div>
       </header>
@@ -128,7 +153,7 @@ export function PlannerPage({ initialTasks, today }: PlannerPageProps) {
               </div>
             ) : (
               <div className="space-y-2">
-                {sortedTasks.map((task) => <TaskRow key={task.id} task={task} onStatusChange={updateStatus} onDelete={deleteTask} />)}
+                {sortedTasks.map((task) => <TaskRow key={task.id} task={task} onStatusChange={updateStatus} onDelete={(task) => setToDelete(task)} onMoveNext={moveTaskToNextDay} />)}
               </div>
             )}
           </section>
@@ -139,6 +164,37 @@ export function PlannerPage({ initialTasks, today }: PlannerPageProps) {
         <Clock3 className="h-4 w-4 shrink-0" />
         <span>Time blocks are guidance, not a contract. Keep the list short enough to finish.</span>
       </footer>
+
+      <Dialog
+        open={!!toDelete}
+        onOpenChange={(open) => !open && setToDelete(null)}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete task?</DialogTitle>
+            <DialogDescription>
+              This will permanently remove{" "}
+              <span className="font-semibold">{toDelete?.title}</span> from your
+              planner. This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setToDelete(null)}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={async () => {
+                if (!toDelete) return;
+                setToDelete(null);
+                await deleteTask(toDelete);
+              }}
+            >
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

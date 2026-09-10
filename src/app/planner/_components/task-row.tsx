@@ -1,7 +1,7 @@
 "use client";
 
 import { format } from "date-fns";
-import { SkipForward, Trash2 } from "lucide-react";
+import { MoveRight, SkipForward, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { PlannerPriority, PlannerTask, PlannerStatus } from "@/lib/planner-types";
@@ -31,10 +31,12 @@ export function TaskRow({
   task,
   onStatusChange,
   onDelete,
+  onMoveNext,
 }: {
   task: PlannerTask;
   onStatusChange: (task: PlannerTask, status: PlannerStatus) => void;
   onDelete: (task: PlannerTask) => void;
+  onMoveNext: (task: PlannerTask) => void;
 }) {
   const terminal = task.status === "done" || task.status === "skipped";
 
@@ -64,16 +66,28 @@ export function TaskRow({
       </div>
       <div className="flex items-center gap-1 opacity-70 transition-opacity group-hover:opacity-100">
         {task.status !== "done" && task.status !== "skipped" && (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8"
-            onClick={() => onStatusChange(task, "skipped")}
-            aria-label="Skip task"
-            title="Skip task"
-          >
-            <SkipForward className="h-4 w-4" />
-          </Button>
+          <>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => onMoveNext(task)}
+              aria-label="Move to tomorrow"
+              title="Move to tomorrow"
+            >
+              <MoveRight className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => onStatusChange(task, "skipped")}
+              aria-label="Skip task"
+              title="Skip task"
+            >
+              <SkipForward className="h-4 w-4" />
+            </Button>
+          </>
         )}
         <Button
           variant="ghost"

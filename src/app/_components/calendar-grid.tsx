@@ -21,7 +21,7 @@ import { useHabitStore } from "@/stores/store";
 import { getMonthDays, toKey } from "@/lib/date";
 import { Button } from "@/components/ui/button";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { HabitForm } from "@/components/habits/habit-form";
+import { HabitForm } from "@/app/_components/habit-form";
 import {
   Dialog,
   DialogContent,
@@ -34,8 +34,8 @@ import { cn } from "@/lib/utils";
 import { Habit } from "@/lib/types";
 import { CompletionRow } from "@/app/actions/habit.actions";
 import { toast } from "sonner";
-import { NotesDialog } from "@/components/habits/notes-dialog";
-import { SortableRow } from "@/components/habits/sortable-row";
+import { NotesDialog } from "@/app/_components/notes-dialog";
+import { SortableRow } from "@/app/_components/sortable-row";
 
 interface CalendarGridProps {
   initialHabits: Habit[];

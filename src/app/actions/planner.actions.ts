@@ -111,3 +111,33 @@ export async function deletePlannerTask(id: string): Promise<{ error?: string }>
   revalidatePath("/planner");
   return {};
 }
+
+export async function movePlannerTaskToDate(
+  id: string,
+  date: string
+): Promise<{ task: PlannerTask } | { error: string }> {
+  const { supabase, user } = await getUser();
+
+  const { count } = await supabase
+    .from("daily_planner_tasks")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", user.id)
+    .eq("date", date);
+
+  const { data: task, error } = await supabase
+    .from("daily_planner_tasks")
+    .update({
+      date,
+      status: "planned",
+      position: count ?? 0,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", id)
+    .eq("user_id", user.id)
+    .select()
+    .single();
+
+  if (error) return { error: error.message };
+  revalidatePath("/planner");
+  return { task: mapTask(task as Record<string, unknown>) };
+}
