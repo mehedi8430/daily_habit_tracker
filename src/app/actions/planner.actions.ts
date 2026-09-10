@@ -112,6 +112,22 @@ export async function deletePlannerTask(id: string): Promise<{ error?: string }>
   return {};
 }
 
+export async function reorderPlannerTasks(ids: string[]): Promise<{ success: true } | { error: string }> {
+  const { supabase, user } = await getUser();
+  const updates = ids.map((id, index) =>
+    supabase
+      .from("daily_planner_tasks")
+      .update({ position: index, updated_at: new Date().toISOString() })
+      .eq("id", id)
+      .eq("user_id", user.id),
+  );
+  const results = await Promise.all(updates);
+  const err = results.find((r) => r.error);
+  if (err) return { error: err.error!.message };
+  revalidatePath("/planner");
+  return { success: true };
+}
+
 export async function movePlannerTaskToDate(
   id: string,
   date: string

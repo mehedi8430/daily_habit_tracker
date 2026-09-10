@@ -1,10 +1,16 @@
 "use client";
 
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { format } from "date-fns";
-import { MoveRight, SkipForward, Trash2 } from "lucide-react";
+import { GripVertical, MoveRight, SkipForward, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import type { PlannerPriority, PlannerTask, PlannerStatus } from "@/lib/planner-types";
+import type {
+  PlannerPriority,
+  PlannerTask,
+  PlannerStatus,
+} from "@/lib/planner-types";
 import { TaskStatusButton } from "./task-status-button";
 
 const statusLabels: Record<PlannerStatus, string> = {
@@ -16,7 +22,8 @@ const statusLabels: Record<PlannerStatus, string> = {
 
 const priorityStyles: Record<PlannerPriority, string> = {
   low: "border-slate-300 bg-slate-50 text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300",
-  medium: "border-blue-300 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-300",
+  medium:
+    "border-blue-300 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-300",
   high: "border-amber-300 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-300",
 };
 
@@ -38,23 +45,63 @@ export function TaskRow({
   onDelete: (task: PlannerTask) => void;
   onMoveNext: (task: PlannerTask) => void;
 }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: task.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
   const terminal = task.status === "done" || task.status === "skipped";
 
   return (
     <div
+      ref={setNodeRef}
+      style={style}
       className={cn(
-        "group grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-lg border bg-card px-3 py-3 transition-colors hover:border-foreground/20 sm:grid-cols-[5rem_auto_minmax(0,1fr)_auto]",
-        terminal && "opacity-65"
+        "group grid grid-cols-[auto_auto_minmax(0,1fr)_auto] items-center gap-3 rounded-lg border bg-card px-3 py-3 transition-colors hover:border-foreground/20 sm:grid-cols-[auto_5rem_auto_minmax(0,1fr)_auto]",
+        isDragging && "relative z-10 opacity-90 shadow-lg",
+        terminal && "opacity-65",
       )}
     >
-      <div className="row-start-1 text-right text-xs tabular-nums text-muted-foreground sm:col-start-1">
+      <button
+        {...attributes}
+        {...listeners}
+        className="cursor-grab text-muted-foreground hover:text-foreground active:cursor-grabbing"
+        aria-label="Drag to reorder"
+      >
+        <GripVertical className="h-4 w-4" />
+      </button>
+      <div className="text-right text-xs tabular-nums text-muted-foreground sm:col-start-2">
         {formatTime(task.startTime)}
       </div>
-      <TaskStatusButton task={task} onChange={(status) => onStatusChange(task, status)} />
+      <TaskStatusButton
+        task={task}
+        onChange={(status) => onStatusChange(task, status)}
+      />
       <div className="min-w-0">
         <div className="flex flex-wrap items-center gap-2">
-          <p className={cn("truncate text-sm font-medium", terminal && "line-through")}>{task.title}</p>
-          <span className={cn("rounded-full border px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide", priorityStyles[task.priority])}>
+          <p
+            className={cn(
+              "truncate text-sm font-medium",
+              terminal && "line-through",
+            )}
+          >
+            {task.title}
+          </p>
+          <span
+            className={cn(
+              "rounded-full border px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide",
+              priorityStyles[task.priority],
+            )}
+          >
             {task.priority}
           </span>
         </div>
