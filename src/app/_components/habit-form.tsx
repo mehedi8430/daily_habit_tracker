@@ -43,6 +43,7 @@ function HabitFormFields({
   const [category, setCategory] = React.useState(
     habit?.category ?? CATEGORIES[0].id
   );
+  const [goal, setGoal] = React.useState(habit?.goal ?? "");
   const [saving, setSaving] = React.useState(false);
 
   const handleSave = async () => {
@@ -51,9 +52,9 @@ function HabitFormFields({
     setSaving(true);
     try {
       if (habit) {
-        await updateHabit(habit.id, { name: trimmed, category });
+        await updateHabit(habit.id, { name: trimmed, category, goal: goal.trim() });
       } else {
-        await addHabit({ name: trimmed, category });
+        await addHabit({ name: trimmed, category, goal: goal.trim() });
       }
       close();
     } catch (err) {
@@ -100,6 +101,17 @@ function HabitFormFields({
               ))}
             </SelectContent>
           </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="habit-goal">Goal</Label>
+          <textarea
+            id="habit-goal"
+            value={goal}
+            onChange={(event) => setGoal(event.target.value)}
+            placeholder="What do you want to achieve with this habit?"
+            className="min-h-20 w-full resize-y rounded-md border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
+          />
         </div>
       </div>
 

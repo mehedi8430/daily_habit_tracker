@@ -1,10 +1,25 @@
 export interface Habit {
   id: string;
   name: string;
+  goal: string;
   emoji?: string;
   category: string;
   order: number;
   createdAt: string; // ISO date
+}
+
+export type TopicStatus = "planned" | "in_progress" | "done" | "skipped";
+
+export interface HabitTopic {
+  id: string;
+  habitId: string;
+  title: string;
+  status: TopicStatus;
+  startTime: string | null;
+  endTime: string | null;
+  details: string;
+  resources: string;
+  order: number;
 }
 
 export const CATEGORIES = [
