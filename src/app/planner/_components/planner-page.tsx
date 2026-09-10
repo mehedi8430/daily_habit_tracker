@@ -48,6 +48,7 @@ import {
 } from "@/app/actions/planner.actions";
 import type { PlannerStatus, PlannerTask } from "@/lib/planner-types";
 import { NewTaskForm } from "./new-task-form";
+import { EditTaskDialog } from "./edit-task-dialog";
 import { TaskRow } from "./task-row";
 
 interface PlannerPageProps {
@@ -76,6 +77,7 @@ export function PlannerPage({ initialTasks, today }: PlannerPageProps) {
   );
   const [lastLoadedDate, setLastLoadedDate] = React.useState(today);
   const [toDelete, setToDelete] = React.useState<PlannerTask | null>(null);
+  const [editing, setEditing] = React.useState<PlannerTask | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -186,6 +188,12 @@ export function PlannerPage({ initialTasks, today }: PlannerPageProps) {
     reorderPlannerTasks(reordered).then((result) => {
       if ("error" in result) toast.error(result.error);
     });
+  };
+
+  const updateTask = (updated: PlannerTask) => {
+    setTasks((current) =>
+      current.map((item) => (item.id === updated.id ? updated : item)),
+    );
   };
 
   return (
@@ -322,6 +330,7 @@ export function PlannerPage({ initialTasks, today }: PlannerPageProps) {
                         onStatusChange={updateStatus}
                         onDelete={(task) => setToDelete(task)}
                         onMoveNext={moveTaskToNextDay}
+                        onEdit={(task) => setEditing(task)}
                       />
                     ))}
                   </SortableContext>
@@ -370,6 +379,13 @@ export function PlannerPage({ initialTasks, today }: PlannerPageProps) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <EditTaskDialog
+        task={editing}
+        open={!!editing}
+        onOpenChange={(open) => !open && setEditing(null)}
+        onUpdated={updateTask}
+      />
     </div>
   );
 }

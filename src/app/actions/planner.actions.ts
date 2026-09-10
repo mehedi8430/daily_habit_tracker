@@ -80,10 +80,21 @@ export async function createPlannerTask(data: {
 
 export async function updatePlannerTask(
   id: string,
-  updates: { status?: PlannerStatus; notes?: string | null }
+  updates: {
+    title?: string;
+    startTime?: string | null;
+    durationMinutes?: number | null;
+    priority?: PlannerPriority;
+    status?: PlannerStatus;
+    notes?: string | null;
+  }
 ): Promise<{ task: PlannerTask } | { error: string }> {
   const { supabase, user } = await getUser();
   const values: Record<string, unknown> = { updated_at: new Date().toISOString() };
+  if (updates.title !== undefined) values.title = updates.title.trim();
+  if (updates.startTime !== undefined) values.start_time = updates.startTime || null;
+  if (updates.durationMinutes !== undefined) values.duration_minutes = updates.durationMinutes || null;
+  if (updates.priority !== undefined) values.priority = updates.priority;
   if (updates.status !== undefined) values.status = updates.status;
   if (updates.notes !== undefined) values.notes = updates.notes;
 

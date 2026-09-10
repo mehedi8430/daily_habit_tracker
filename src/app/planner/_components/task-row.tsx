@@ -3,7 +3,7 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { format } from "date-fns";
-import { GripVertical, MoveRight, SkipForward, Trash2 } from "lucide-react";
+import { GripVertical, MoveRight, Pencil, SkipForward, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type {
@@ -39,11 +39,13 @@ export function TaskRow({
   onStatusChange,
   onDelete,
   onMoveNext,
+  onEdit,
 }: {
   task: PlannerTask;
   onStatusChange: (task: PlannerTask, status: PlannerStatus) => void;
   onDelete: (task: PlannerTask) => void;
   onMoveNext: (task: PlannerTask) => void;
+  onEdit: (task: PlannerTask) => void;
 }) {
   const {
     attributes,
@@ -136,6 +138,16 @@ export function TaskRow({
             </Button>
           </>
         )}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8"
+          onClick={() => onEdit(task)}
+          aria-label="Edit task"
+          title="Edit task"
+        >
+          <Pencil className="h-4 w-4" />
+        </Button>
         <Button
           variant="ghost"
           size="icon"
