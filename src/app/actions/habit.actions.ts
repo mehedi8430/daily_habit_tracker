@@ -9,7 +9,6 @@ export interface CompletionRow {
   habit_id: string;
   date: string;
   completed: boolean;
-  notes: string | null;
 }
 
 export async function getInitialData() {
@@ -50,17 +49,19 @@ export async function getInitialData() {
       id: h.id as string,
       name: h.name as string,
       goal: (h.goal as string) ?? "",
+      notes: (h.notes as string | null) ?? null,
       emoji: h.emoji as string,
       category: h.category as string,
       order: (h.sort_order as number) ?? 0,
       createdAt: h.created_at as string,
     })),
-    completions: (completionsResult.data || []).map((c: Record<string, unknown>) => ({
-      habit_id: c.habit_id as string,
-      date: c.date as string,
-      completed: c.completed as boolean,
-      notes: (c.notes as string) ?? null,
-    })),
+    completions: (completionsResult.data || []).map(
+      (c: Record<string, unknown>) => ({
+        habit_id: c.habit_id as string,
+        date: c.date as string,
+        completed: c.completed as boolean,
+      })
+    ),
   };
 }
 
@@ -116,6 +117,7 @@ export async function addHabit(data: {
       id: created.id as string,
       name: created.name as string,
       goal: (created.goal as string) ?? "",
+      notes: null,
       emoji: created.emoji as string,
       category: created.category as string,
       order: (created.sort_order as number) ?? 0,
@@ -218,45 +220,31 @@ export async function toggleCompletion(habitId: string, date: string) {
 
   const { data: existing } = await supabase
     .from("completions")
-    .select("*")
+    .select("id, completed")
     .eq("user_id", user.id)
     .eq("habit_id", habitId)
     .eq("date", date)
     .single();
 
-  if (existing) {
-    if (existing.completed) {
-      if (!existing.notes || existing.notes.trim() === "") {
-        const { error } = await supabase
-          .from("completions")
-          .delete()
-          .eq("id", existing.id)
-          .eq("user_id", user.id);
+  if (existing && existing.completed) {
+    const { error } = await supabase
+      .from("completions")
+      .delete()
+      .eq("id", existing.id)
+      .eq("user_id", user.id);
 
-        if (error) {
-          return { error: error.message };
-        }
-      } else {
-        const { error } = await supabase
-          .from("completions")
-          .update({ completed: false, updated_at: new Date().toISOString() })
-          .eq("id", existing.id)
-          .eq("user_id", user.id);
+    if (error) {
+      return { error: error.message };
+    }
+  } else if (existing) {
+    const { error } = await supabase
+      .from("completions")
+      .update({ completed: true, updated_at: new Date().toISOString() })
+      .eq("id", existing.id)
+      .eq("user_id", user.id);
 
-        if (error) {
-          return { error: error.message };
-        }
-      }
-    } else {
-      const { error } = await supabase
-        .from("completions")
-        .update({ completed: true, updated_at: new Date().toISOString() })
-        .eq("id", existing.id)
-        .eq("user_id", user.id);
-
-      if (error) {
-        return { error: error.message };
-      }
+    if (error) {
+      return { error: error.message };
     }
   } else {
     const { error } = await supabase.from("completions").insert({
@@ -292,34 +280,22 @@ export async function setCompletion(
 
   const { data: existing } = await supabase
     .from("completions")
-    .select("*")
+    .select("id, completed")
     .eq("user_id", user.id)
     .eq("habit_id", habitId)
     .eq("date", date)
     .single();
 
   if (!completed) {
-    if (existing && existing.notes && existing.notes.trim() !== "") {
-      const { error } = await supabase
-        .from("completions")
-        .update({ completed: false, updated_at: new Date().toISOString() })
-        .eq("id", existing.id)
-        .eq("user_id", user.id);
+    const { error } = await supabase
+      .from("completions")
+      .delete()
+      .eq("user_id", user.id)
+      .eq("habit_id", habitId)
+      .eq("date", date);
 
-      if (error) {
-        return { error: error.message };
-      }
-    } else {
-      const { error } = await supabase
-        .from("completions")
-        .delete()
-        .eq("user_id", user.id)
-        .eq("habit_id", habitId)
-        .eq("date", date);
-
-      if (error) {
-        return { error: error.message };
-      }
+    if (error) {
+      return { error: error.message };
     }
   } else if (existing) {
     const { error } = await supabase
@@ -349,11 +325,7 @@ export async function setCompletion(
   return { success: true };
 }
 
-export async function saveNotes(
-  habitId: string,
-  date: string,
-  notes: string | null
-) {
+export async function saveNotes(habitId: string, notes: string | null) {
   const supabase = await createClient();
   const {
     data: { user },
@@ -363,36 +335,14 @@ export async function saveNotes(
     redirect("/login");
   }
 
-  const { data: existing } = await supabase
-    .from("completions")
-    .select("id")
-    .eq("user_id", user.id)
-    .eq("habit_id", habitId)
-    .eq("date", date)
-    .single();
+  const { error } = await supabase
+    .from("habits")
+    .update({ notes })
+    .eq("id", habitId)
+    .eq("user_id", user.id);
 
-  if (existing) {
-    const { error } = await supabase
-      .from("completions")
-      .update({ notes, updated_at: new Date().toISOString() })
-      .eq("id", existing.id)
-      .eq("user_id", user.id);
-
-    if (error) {
-      return { error: error.message };
-    }
-  } else {
-    const { error } = await supabase.from("completions").insert({
-      user_id: user.id,
-      habit_id: habitId,
-      date,
-      completed: false,
-      notes,
-    });
-
-    if (error) {
-      return { error: error.message };
-    }
+  if (error) {
+    return { error: error.message };
   }
 
   revalidatePath("/");

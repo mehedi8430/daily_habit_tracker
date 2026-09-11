@@ -67,7 +67,6 @@ export function CalendarGrid({
   const [isMobile, setIsMobile] = React.useState(false);
   const [notesDialog, setNotesDialog] = React.useState<{
     habit: Habit;
-    date: Date;
   } | null>(null);
 
   React.useEffect(() => {
@@ -222,9 +221,7 @@ export function CalendarGrid({
                         toggle={toggleCompletion}
                         onEdit={openEdit}
                         onDelete={setToDelete}
-                        onOpenNotes={(habit, date) =>
-                          setNotesDialog({ habit, date })
-                        }
+                        onOpenNotes={(habit) => setNotesDialog({ habit })}
                         cols={cols}
                       />
                     ))}
@@ -278,9 +275,7 @@ export function CalendarGrid({
       <NotesDialog
         open={!!notesDialog}
         onOpenChange={(o) => !o && setNotesDialog(null)}
-        habitId={notesDialog?.habit.id ?? ""}
-        habitName={notesDialog?.habit.name ?? ""}
-        date={notesDialog?.date ?? new Date()}
+        habit={notesDialog?.habit ?? null}
       />
     </TooltipProvider>
   );

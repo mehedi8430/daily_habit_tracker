@@ -10,38 +10,38 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import type { HabitTopic } from "@/lib/types";
+import type { HabitMilestone } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { statusLabels, statusStyles } from "./topic-row";
+import { statusLabels, statusStyles } from "./milestone-row";
 
-export function TopicViewDialog({
-  topic,
+export function MilestoneViewDialog({
+  milestone,
   onClose,
   onEdit,
 }: {
-  topic: HabitTopic | null;
+  milestone: HabitMilestone | null;
   onClose: () => void;
   onEdit: () => void;
 }) {
-  if (!topic) return null;
+  if (!milestone) return null;
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="flex flex-wrap items-center gap-2 pr-6">
-            {topic.title}
+            {milestone.title}
             <span
               className={cn(
                 "inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium",
-                statusStyles[topic.status],
+                statusStyles[milestone.status],
               )}
             >
-              {statusLabels[topic.status]}
+              {statusLabels[milestone.status]}
             </span>
           </DialogTitle>
           <DialogDescription>
-            {topic.startDate || "Anytime"}
-            {topic.targetDate ? ` — ${topic.targetDate}` : ""}
+            {milestone.startDate || "Anytime"}
+            {milestone.targetDate ? ` — ${milestone.targetDate}` : ""}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
@@ -50,17 +50,17 @@ export function TopicViewDialog({
               Details
             </p>
             <p className="mt-1 text-sm whitespace-pre-wrap">
-              {topic.details || "No details provided."}
+              {milestone.details || "No details provided."}
             </p>
           </div>
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Resources
             </p>
-            {topic.resources ? (
+            {milestone.resources ? (
               <p className="mt-1 inline-flex items-start gap-1 text-sm whitespace-pre-wrap">
                 <ExternalLink className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                {topic.resources}
+                {milestone.resources}
               </p>
             ) : (
               <p className="mt-1 text-sm text-muted-foreground">
@@ -76,7 +76,7 @@ export function TopicViewDialog({
           </Button>
           <Button type="button" onClick={onEdit}>
             <Pencil className="h-4 w-4" />
-            Edit topic
+            Edit milestone
           </Button>
         </DialogFooter>
       </DialogContent>

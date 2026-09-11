@@ -6,45 +6,50 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import type { HabitTopic } from "@/lib/types";
-import * as actions from "@/app/actions/topic.actions";
+import type { HabitMilestone } from "@/lib/types";
+import * as actions from "@/app/actions/milestone.actions";
 
-export const emptyTopic: Omit<HabitTopic, "id" | "habitId" | "order"> = {
-  title: "",
-  status: "planned",
-  startDate: null,
-  targetDate: null,
-  details: "",
-  resources: "",
-};
+export const emptyMilestone: Omit<HabitMilestone, "id" | "habitId" | "order"> =
+  {
+    title: "",
+    status: "planned",
+    startDate: null,
+    targetDate: null,
+    details: "",
+    resources: "",
+  };
 
-export function TopicForm({
+export function MilestoneForm({
   initial,
   onCancel,
   onSaved,
   habitId,
 }: {
-  initial: typeof emptyTopic;
+  initial: typeof emptyMilestone;
   onCancel: () => void;
-  onSaved: (topic: HabitTopic) => void;
+  onSaved: (milestone: HabitMilestone) => void;
   habitId: string;
 }) {
   const [draft, setDraft] = React.useState(initial);
   const [saving, setSaving] = React.useState(false);
   const isEditing = "id" in initial;
 
-  const update = (field: keyof typeof emptyTopic, value: string) =>
+  const update = (field: keyof typeof emptyMilestone, value: string) =>
     setDraft((current) => ({ ...current, [field]: value }));
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!draft.title.trim()) return;
     setSaving(true);
     const result = isEditing
-      ? await actions.updateHabitTopic((initial as HabitTopic).id, habitId, {
-          ...draft,
-          title: draft.title.trim(),
-        })
-      : await actions.createHabitTopic(habitId, {
+      ? await actions.updateHabitMilestone(
+          (initial as HabitMilestone).id,
+          habitId,
+          {
+            ...draft,
+            title: draft.title.trim(),
+          },
+        )
+      : await actions.createHabitMilestone(habitId, {
           ...draft,
           title: draft.title.trim(),
         });
@@ -53,36 +58,36 @@ export function TopicForm({
       toast.error(result.error);
       return;
     }
-    onSaved(result.topic);
-    toast.success(isEditing ? "Topic updated" : "Topic added");
+    onSaved(result.milestone);
+    toast.success(isEditing ? "Milestone updated" : "Milestone added");
   };
 
   return (
     <form onSubmit={submit}>
       <div className="grid gap-4 md:grid-cols-[minmax(0,1.4fr)_9rem_9rem]">
         <div className="space-y-2">
-          <Label htmlFor="topic-title">Topic</Label>
+          <Label htmlFor="milestone-title">Milestone</Label>
           <Input
-            id="topic-title"
+            id="milestone-title"
             value={draft.title}
             onChange={(event) => update("title", event.target.value)}
-            placeholder="Topic or milestone"
+            placeholder="Name this milestone"
             autoFocus
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="topic-start">Start date</Label>
+          <Label htmlFor="milestone-start">Start date</Label>
           <Input
-            id="topic-start"
+            id="milestone-start"
             type="date"
             value={draft.startDate ?? ""}
             onChange={(event) => update("startDate", event.target.value || "")}
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="topic-end">Target date</Label>
+          <Label htmlFor="milestone-end">Target date</Label>
           <Input
-            id="topic-end"
+            id="milestone-end"
             type="date"
             value={draft.targetDate ?? ""}
             onChange={(event) => update("targetDate", event.target.value || "")}
@@ -92,9 +97,9 @@ export function TopicForm({
 
       {/* Details */}
       <div className="space-y-2">
-        <Label htmlFor="topic-details">Details</Label>
+        <Label htmlFor="milestone-details">Details</Label>
         <textarea
-          id="topic-details"
+          id="milestone-details"
           value={draft.details}
           onChange={(event) => update("details", event.target.value)}
           placeholder="What should be covered?"
@@ -104,9 +109,9 @@ export function TopicForm({
 
       {/* Resources */}
       <div className="space-y-2">
-        <Label htmlFor="topic-resources">Resources</Label>
+        <Label htmlFor="milestone-resources">Resources</Label>
         <textarea
-          id="topic-resources"
+          id="milestone-resources"
           value={draft.resources}
           onChange={(event) => update("resources", event.target.value)}
           placeholder="Links, books, files, or references"
@@ -122,7 +127,7 @@ export function TopicForm({
         </Button>
         <Button type="submit" disabled={!draft.title.trim() || saving}>
           <Save className="h-4 w-4" />
-          {saving ? "Saving..." : isEditing ? "Save topic" : "Add topic"}
+          {saving ? "Saving..." : isEditing ? "Save milestone" : "Add milestone"}
         </Button>
       </div>
     </form>
