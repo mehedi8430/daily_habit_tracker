@@ -12,8 +12,8 @@ import * as actions from "@/app/actions/topic.actions";
 export const emptyTopic: Omit<HabitTopic, "id" | "habitId" | "order"> = {
   title: "",
   status: "planned",
-  startTime: null,
-  endTime: null,
+  startDate: null,
+  targetDate: null,
   details: "",
   resources: "",
 };
@@ -71,21 +71,21 @@ export function TopicForm({
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="topic-start">Start</Label>
+          <Label htmlFor="topic-start">Start date</Label>
           <Input
             id="topic-start"
-            type="time"
-            value={draft.startTime ?? ""}
-            onChange={(event) => update("startTime", event.target.value || "")}
+            type="date"
+            value={draft.startDate ?? ""}
+            onChange={(event) => update("startDate", event.target.value || "")}
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="topic-end">End</Label>
+          <Label htmlFor="topic-end">Target date</Label>
           <Input
             id="topic-end"
-            type="time"
-            value={draft.endTime ?? ""}
-            onChange={(event) => update("endTime", event.target.value || "")}
+            type="date"
+            value={draft.targetDate ?? ""}
+            onChange={(event) => update("targetDate", event.target.value || "")}
           />
         </div>
       </div>
@@ -98,7 +98,7 @@ export function TopicForm({
           value={draft.details}
           onChange={(event) => update("details", event.target.value)}
           placeholder="What should be covered?"
-          className="min-h-24 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
+          className="min-h-44 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
         />
       </div>
 

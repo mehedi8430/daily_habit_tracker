@@ -137,14 +137,15 @@ export function TopicManager({
       <section className="overflow-hidden rounded-lg border bg-card">
         <div className="overflow-x-auto">
           <div className="min-w-[860px]">
-            <div className="grid grid-cols-[2rem_minmax(13rem,1.5fr)_9rem_9rem_minmax(14rem,1fr)_minmax(14rem,1fr)_5rem] items-center bg-muted/60 px-0 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            <div className="grid grid-cols-[2rem_minmax(10rem,1.2fr)_9rem_9rem_minmax(14rem,1fr)_minmax(14rem,1fr)_5rem_5rem] items-center gap-x-4 bg-muted/60 px-0 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               <span />
               <span className="px-3">Topic</span>
-              <span className="px-2">Start</span>
-              <span className="px-2">End</span>
+              <span className="px-2">Start date</span>
+              <span className="px-2">Target date</span>
               <span className="px-3">Details</span>
               <span className="px-3">Resources</span>
               <span className="px-2">Status</span>
+              <span className="px-2">Actions</span>
             </div>
             <DndContext
               sensors={sensors}

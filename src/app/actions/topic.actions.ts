@@ -11,8 +11,8 @@ function mapTopic(topic: Record<string, unknown>): HabitTopic {
         habitId: topic.habit_id as string,
         title: topic.title as string,
         status: topic.status as TopicStatus,
-        startTime: (topic.start_time as string) ?? null,
-        endTime: (topic.end_time as string) ?? null,
+        startDate: (topic.start_date as string | null) ?? null,
+        targetDate: (topic.target_date as string | null) ?? null,
         details: (topic.details as string) ?? "",
         resources: (topic.resources as string) ?? "",
         order: (topic.sort_order as number) ?? 0,
@@ -48,7 +48,7 @@ export async function createHabitTopic(habitId: string, data: HabitTopicInput) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) redirect("/login");
     const { data: last } = await supabase.from("habit_topics").select("sort_order").eq("habit_id", habitId).eq("user_id", user.id).order("sort_order", { ascending: false }).limit(1);
-    const { data: topic, error } = await supabase.from("habit_topics").insert({ user_id: user.id, habit_id: habitId, title: data.title, status: data.status, start_time: data.startTime, end_time: data.endTime, details: data.details, resources: data.resources, sort_order: last?.[0]?.sort_order != null ? last[0].sort_order + 1 : 0 }).select().single();
+    const { data: topic, error } = await supabase.from("habit_topics").insert({ user_id: user.id, habit_id: habitId, title: data.title, status: data.status, start_date: data.startDate, target_date: data.targetDate, details: data.details, resources: data.resources, sort_order: last?.[0]?.sort_order != null ? last[0].sort_order + 1 : 0 }).select().single();
     if (error) return { error: error.message };
     revalidatePath(`/habits/${habitId}/topics`);
     return { success: true, topic: mapTopic(topic as Record<string, unknown>) };
@@ -58,7 +58,7 @@ export async function updateHabitTopic(topicId: string, habitId: string, data: H
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) redirect("/login");
-    const { data: topic, error } = await supabase.from("habit_topics").update({ title: data.title, status: data.status, start_time: data.startTime, end_time: data.endTime, details: data.details, resources: data.resources, updated_at: new Date().toISOString() }).eq("id", topicId).eq("habit_id", habitId).eq("user_id", user.id).select().single();
+    const { data: topic, error } = await supabase.from("habit_topics").update({ title: data.title, status: data.status, start_date: data.startDate, target_date: data.targetDate, details: data.details, resources: data.resources, updated_at: new Date().toISOString() }).eq("id", topicId).eq("habit_id", habitId).eq("user_id", user.id).select().single();
     if (error) return { error: error.message };
     revalidatePath(`/habits/${habitId}/topics`);
     return { success: true, topic: mapTopic(topic as Record<string, unknown>) };

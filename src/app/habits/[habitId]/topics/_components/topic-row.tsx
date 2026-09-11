@@ -53,7 +53,7 @@ export function TopicRow({
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition }}
       className={cn(
-        "grid min-w-[860px] grid-cols-[2rem_minmax(13rem,1.5fr)_9rem_9rem_minmax(14rem,1fr)_minmax(14rem,1fr)_5rem] items-center border-t text-sm",
+        "grid min-w-[860px] grid-cols-[2rem_minmax(10rem,1.2fr)_9rem_9rem_minmax(14rem,1fr)_minmax(14rem,1fr)_5rem_5rem] items-center gap-x-4 border-t text-sm",
         isDragging && "relative z-10 bg-accent shadow-lg",
       )}
     >
@@ -75,10 +75,10 @@ export function TopicRow({
         {topic.title}
       </div>
       <div className="px-2 py-3 text-xs tabular-nums text-muted-foreground">
-        {topic.startTime || "Anytime"}
+        {topic.startDate || "Anytime"}
       </div>
       <div className="px-2 py-3 text-xs tabular-nums text-muted-foreground">
-        {topic.endTime || ""}
+        {topic.targetDate || "-"}
       </div>
       <div
         className="truncate px-3 py-3 text-xs text-muted-foreground"
@@ -99,7 +99,7 @@ export function TopicRow({
           "-"
         )}
       </div>
-      <div className="flex items-center justify-end gap-1 px-2">
+      <div className="px-2 py-3">
         <select
           value={topic.status}
           onChange={(event) => onStatus(event.target.value as TopicStatus)}
@@ -115,6 +115,8 @@ export function TopicRow({
             </option>
           ))}
         </select>
+      </div>
+      <div className="flex items-center justify-end gap-1 px-2">
         <Button
           variant="ghost"
           size="icon"

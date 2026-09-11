@@ -15,8 +15,8 @@ export interface HabitTopic {
   habitId: string;
   title: string;
   status: TopicStatus;
-  startTime: string | null;
-  endTime: string | null;
+  startDate: string | null;
+  targetDate: string | null;
   details: string;
   resources: string;
   order: number;
