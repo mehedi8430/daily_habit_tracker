@@ -4,7 +4,7 @@ ALTER TABLE public.habits
 WITH latest_notes AS (
   SELECT DISTINCT ON (habit_id) habit_id, notes
   FROM public.completions
-  WHERE notes IS NOT NULL AND notes <> ''
+  WHERE notes IS NOT NULL AND btrim(notes) <> ''
   ORDER BY habit_id, updated_at DESC
 )
 UPDATE public.habits AS h

@@ -29,8 +29,9 @@ function NotesFields({
   close: () => void;
 }) {
   const saveNotes = useHabitStore((s) => s.saveNotes);
+  const liveNote = useHabitStore((s) => s.habits.find((h) => h.id === habit.id)?.notes ?? null);
 
-  const [draft, setDraft] = React.useState(habit.notes ?? "");
+  const [draft, setDraft] = React.useState(liveNote ?? "");
   const [saving, setSaving] = React.useState(false);
   const [editing, setEditing] = React.useState(false);
 
@@ -51,7 +52,7 @@ function NotesFields({
   };
 
   const handleCancel = () => {
-    setDraft(habit.notes ?? "");
+    setDraft(liveNote ?? "");
     setEditing(false);
   };
 

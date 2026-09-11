@@ -49,7 +49,7 @@ export async function getInitialData() {
       id: h.id as string,
       name: h.name as string,
       goal: (h.goal as string) ?? "",
-      notes: (h.notes as string) ?? null,
+      notes: (h.notes as string | null) ?? null,
       emoji: h.emoji as string,
       category: h.category as string,
       order: (h.sort_order as number) ?? 0,
