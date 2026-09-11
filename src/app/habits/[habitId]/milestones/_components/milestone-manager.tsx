@@ -14,9 +14,10 @@ import {
   verticalListSortingStrategy,
   arrayMove,
 } from "@dnd-kit/sortable";
-import { ArrowLeft, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
+import { BackButton } from "@/components/back-button";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -104,16 +105,10 @@ export function MilestoneManager({
   };
 
   return (
-    <div className="space-y-6 p-4 sm:p-8">
+    <div className="space-y-6 p-4 sm:px-8 sm:py-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <Link
-            href="/"
-            className="mb-3 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Habit calendar
-          </Link>
+          <BackButton fallbackHref="/">Go back</BackButton>
           <h1 className="text-2xl font-bold tracking-tight">{habitName}</h1>
           <p className="text-sm text-muted-foreground">
             Manage the milestones behind this habit.
