@@ -8,13 +8,13 @@ export interface Habit {
   createdAt: string; // ISO date
 }
 
-export type TopicStatus = "planned" | "in_progress" | "done" | "skipped";
+export type MilestoneStatus = "planned" | "in_progress" | "done" | "skipped";
 
-export interface HabitTopic {
+export interface HabitMilestone {
   id: string;
   habitId: string;
   title: string;
-  status: TopicStatus;
+  status: MilestoneStatus;
   startDate: string | null;
   targetDate: string | null;
   details: string;

@@ -75,9 +75,9 @@ export function SortableRow({
           <GripVertical className="h-4 w-4" />
         </button>
         <Link
-          href={`/habits/${habit.id}/topics`}
+          href={`/habits/${habit.id}/milestones`}
           className="max-w-60 truncate text-left font-medium hover:underline"
-          title={`${habit.name} — manage topics`}
+          title={`${habit.name} — manage milestones`}
         >
           {habit.name}
         </Link>

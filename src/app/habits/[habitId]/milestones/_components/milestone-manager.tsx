@@ -25,73 +25,82 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import type { HabitTopic, TopicStatus } from "@/lib/types";
-import * as actions from "@/app/actions/topic.actions";
-import { emptyTopic, TopicForm } from "./topic-form";
-import { TopicRow } from "./topic-row";
-import { TopicViewDialog } from "./topic-view-dialog";
+import type { HabitMilestone, MilestoneStatus } from "@/lib/types";
+import * as actions from "@/app/actions/milestone.actions";
+import { emptyMilestone, MilestoneForm } from "./milestone-form";
+import { MilestoneRow } from "./milestone-row";
+import { MilestoneViewDialog } from "./milestone-view-dialog";
 
-export function TopicManager({
+export function MilestoneManager({
   habitId,
   habitName,
   initialGoal,
-  initialTopics,
+  initialMilestones,
 }: {
   habitId: string;
   habitName: string;
   initialGoal: string;
-  initialTopics: HabitTopic[];
+  initialMilestones: HabitMilestone[];
 }) {
   const [goal] = React.useState(initialGoal);
-  const [topics, setTopics] = React.useState(initialTopics);
-  const [form, setForm] = React.useState<typeof emptyTopic | HabitTopic | null>(
-    null,
-  );
-  const [viewing, setViewing] = React.useState<HabitTopic | null>(null);
+  const [milestones, setMilestones] = React.useState(initialMilestones);
+  const [form, setForm] = React.useState<
+    typeof emptyMilestone | HabitMilestone | null
+  >(null);
+  const [viewing, setViewing] = React.useState<HabitMilestone | null>(null);
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
   );
 
   const handleDragEnd = async ({ active, over }: DragEndEvent) => {
     if (!over || active.id === over.id) return;
-    const oldIndex = topics.findIndex((topic) => topic.id === active.id);
-    const newIndex = topics.findIndex((topic) => topic.id === over.id);
-    const reordered = arrayMove(topics, oldIndex, newIndex).map(
-      (topic, index) => ({ ...topic, order: index }),
+    const oldIndex = milestones.findIndex(
+      (milestone) => milestone.id === active.id,
     );
-    setTopics(reordered);
-    const result = await actions.reorderHabitTopics(
+    const newIndex = milestones.findIndex(
+      (milestone) => milestone.id === over.id,
+    );
+    const reordered = arrayMove(milestones, oldIndex, newIndex).map(
+      (milestone, index) => ({ ...milestone, order: index }),
+    );
+    setMilestones(reordered);
+    const result = await actions.reorderHabitMilestones(
       habitId,
-      reordered.map((topic) => topic.id),
+      reordered.map((milestone) => milestone.id),
     );
     if ("error" in result) toast.error(result.error);
   };
-  const updateStatus = async (topic: HabitTopic, status: TopicStatus) => {
-    setTopics((current) =>
+  const updateStatus = async (
+    milestone: HabitMilestone,
+    status: MilestoneStatus,
+  ) => {
+    setMilestones((current) =>
       current.map((item) =>
-        item.id === topic.id ? { ...item, status } : item,
+        item.id === milestone.id ? { ...item, status } : item,
       ),
     );
-    const result = await actions.updateHabitTopic(topic.id, habitId, {
-      ...topic,
+    const result = await actions.updateHabitMilestone(milestone.id, habitId, {
+      ...milestone,
       status,
     });
     if ("error" in result) {
       toast.error(result.error);
-      setTopics((current) =>
-        current.map((item) => (item.id === topic.id ? topic : item)),
+      setMilestones((current) =>
+        current.map((item) => (item.id === milestone.id ? milestone : item)),
       );
     }
   };
-  const removeTopic = async (topic: HabitTopic) => {
-    if (!window.confirm(`Delete topic "${topic.title}"?`)) return;
-    const result = await actions.deleteHabitTopic(topic.id, habitId);
+  const removeMilestone = async (milestone: HabitMilestone) => {
+    if (!window.confirm(`Delete milestone "${milestone.title}"?`)) return;
+    const result = await actions.deleteHabitMilestone(milestone.id, habitId);
     if ("error" in result) {
       toast.error(result.error);
       return;
     }
-    setTopics((current) => current.filter((item) => item.id !== topic.id));
-    toast.success("Topic deleted");
+    setMilestones((current) =>
+      current.filter((item) => item.id !== milestone.id),
+    );
+    toast.success("Milestone deleted");
   };
 
   return (
@@ -107,12 +116,12 @@ export function TopicManager({
           </Link>
           <h1 className="text-2xl font-bold tracking-tight">{habitName}</h1>
           <p className="text-sm text-muted-foreground">
-            Manage the topics and milestones behind this habit.
+            Manage the milestones behind this habit.
           </p>
         </div>
-        <Button onClick={() => setForm(emptyTopic)}>
+        <Button onClick={() => setForm(emptyMilestone)}>
           <Plus className="h-4 w-4" />
-          Add topic
+          Add milestone
         </Button>
       </div>
       <section className="rounded-lg border bg-card p-4 sm:p-5">
@@ -141,7 +150,7 @@ export function TopicManager({
           <div className="min-w-[860px]">
             <div className="grid grid-cols-[2rem_minmax(10rem,1.2fr)_9rem_9rem_minmax(14rem,1fr)_minmax(14rem,1fr)_5rem_5rem] items-center gap-x-4 bg-muted/60 px-0 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               <span />
-              <span className="px-3">Topic</span>
+              <span className="px-3">Milestone</span>
               <span className="">Start date</span>
               <span className="">Target date</span>
               <span className="px-3">Details</span>
@@ -155,24 +164,24 @@ export function TopicManager({
               onDragEnd={handleDragEnd}
             >
               <SortableContext
-                items={topics.map((topic) => topic.id)}
+                items={milestones.map((milestone) => milestone.id)}
                 strategy={verticalListSortingStrategy}
               >
-                {topics.map((topic) => (
-                  <TopicRow
-                    key={topic.id}
-                    topic={topic}
-                    onEdit={() => setForm(topic)}
-                    onDelete={() => removeTopic(topic)}
-                    onStatus={(status) => updateStatus(topic, status)}
-                    onView={() => setViewing(topic)}
+                {milestones.map((milestone) => (
+                  <MilestoneRow
+                    key={milestone.id}
+                    milestone={milestone}
+                    onEdit={() => setForm(milestone)}
+                    onDelete={() => removeMilestone(milestone)}
+                    onStatus={(status) => updateStatus(milestone, status)}
+                    onView={() => setViewing(milestone)}
                   />
                 ))}
               </SortableContext>
             </DndContext>
-            {topics.length === 0 && (
+            {milestones.length === 0 && (
               <div className="border-t px-6 py-12 text-center text-sm text-muted-foreground">
-                No topics yet. Add the first milestone for this habit.
+                No milestones yet. Add the first milestone for this habit.
               </div>
             )}
           </div>
@@ -181,26 +190,26 @@ export function TopicManager({
           <DialogContent className="sm:max-w-4xl">
             <DialogHeader>
               <DialogTitle>
-                {"id" in (form ?? {}) ? "Edit topic" : "Add topic"}
+                {"id" in (form ?? {}) ? "Edit milestone" : "Add milestone"}
               </DialogTitle>
               <DialogDescription>
                 {`id` in (form ?? {})
-                  ? "Update the details for this topic."
-                  : "Add a new topic or milestone for this habit."}
+                  ? "Update the details for this milestone."
+                  : "Add a new milestone for this habit."}
               </DialogDescription>
             </DialogHeader>
             {form && (
-              <TopicForm
+              <MilestoneForm
                 habitId={habitId}
                 initial={form}
                 onCancel={() => setForm(null)}
-                onSaved={(topic) => {
-                  setTopics((current) =>
-                    current.some((item) => item.id === topic.id)
+                onSaved={(milestone) => {
+                  setMilestones((current) =>
+                    current.some((item) => item.id === milestone.id)
                       ? current.map((item) =>
-                          item.id === topic.id ? topic : item,
+                          item.id === milestone.id ? milestone : item,
                         )
-                      : [...current, topic],
+                      : [...current, milestone],
                   );
                   setForm(null);
                 }}
@@ -208,8 +217,8 @@ export function TopicManager({
             )}
           </DialogContent>
         </Dialog>
-        <TopicViewDialog
-          topic={viewing}
+        <MilestoneViewDialog
+          milestone={viewing}
           onClose={() => setViewing(null)}
           onEdit={() => {
             if (viewing) setForm(viewing);

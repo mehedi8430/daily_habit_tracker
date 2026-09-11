@@ -9,17 +9,17 @@ import {
   Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import type { HabitTopic, TopicStatus } from "@/lib/types";
+import type { HabitMilestone, MilestoneStatus } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
-export const statusLabels: Record<TopicStatus, string> = {
+export const statusLabels: Record<MilestoneStatus, string> = {
   planned: "Planned",
   in_progress: "In progress",
   done: "Done",
   skipped: "Skipped",
 };
 
-export const statusStyles: Record<TopicStatus, string> = {
+export const statusStyles: Record<MilestoneStatus, string> = {
   planned:
     "border-slate-300 bg-slate-50 text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300",
   in_progress:
@@ -29,17 +29,17 @@ export const statusStyles: Record<TopicStatus, string> = {
     "border-amber-300 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-300",
 };
 
-export function TopicRow({
-  topic,
+export function MilestoneRow({
+  milestone,
   onEdit,
   onDelete,
   onStatus,
   onView,
 }: {
-  topic: HabitTopic;
+  milestone: HabitMilestone;
   onEdit: () => void;
   onDelete: () => void;
-  onStatus: (status: TopicStatus) => void;
+  onStatus: (status: MilestoneStatus) => void;
   onView: () => void;
 }) {
   const {
@@ -49,7 +49,7 @@ export function TopicRow({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: topic.id });
+  } = useSortable({ id: milestone.id });
   return (
     <div
       ref={setNodeRef}
@@ -71,33 +71,33 @@ export function TopicRow({
         onClick={onView}
         className={cn(
           "min-w-0 px-3 py-3 text-left hover:underline",
-          topic.status === "done" && "text-muted-foreground line-through",
+          milestone.status === "done" && "text-muted-foreground line-through",
         )}
-        title={topic.title}
-        aria-label={`View ${topic.title}`}
+        title={milestone.title}
+        aria-label={`View ${milestone.title}`}
       >
-        {topic.title}
+        {milestone.title}
       </button>
       <div className="py-3 text-xs tabular-nums text-muted-foreground">
-        {topic.startDate || "Anytime"}
+        {milestone.startDate || "Anytime"}
       </div>
       <div className="py-3 text-xs tabular-nums text-muted-foreground">
-        {topic.targetDate || "-"}
+        {milestone.targetDate || "-"}
       </div>
       <div
         className="truncate px-3 py-3 text-xs text-muted-foreground"
-        title={topic.details}
+        title={milestone.details}
       >
-        {topic.details || "-"}
+        {milestone.details || "-"}
       </div>
       <div
         className="truncate px-3 py-3 text-xs text-muted-foreground"
-        title={topic.resources}
+        title={milestone.resources}
       >
-        {topic.resources ? (
+        {milestone.resources ? (
           <span className="inline-flex items-center gap-1">
             <ExternalLink className="h-3 w-3" />
-            {topic.resources}
+            {milestone.resources}
           </span>
         ) : (
           "-"
@@ -105,13 +105,15 @@ export function TopicRow({
       </div>
       <div className="px-2 py-3">
         <select
-          value={topic.status}
-          onChange={(event) => onStatus(event.target.value as TopicStatus)}
+          value={milestone.status}
+          onChange={(event) =>
+            onStatus(event.target.value as MilestoneStatus)
+          }
           className={cn(
             "h-7 max-w-20 rounded-md border px-1 text-[10px] font-medium outline-none",
-            statusStyles[topic.status],
+            statusStyles[milestone.status],
           )}
-          aria-label={`Status for ${topic.title}`}
+          aria-label={`Status for ${milestone.title}`}
         >
           {Object.entries(statusLabels).map(([value, label]) => (
             <option key={value} value={value}>
@@ -126,7 +128,7 @@ export function TopicRow({
           size="icon"
           className="h-7 w-7"
           onClick={onEdit}
-          aria-label="Edit topic"
+          aria-label="Edit milestone"
         >
           <Pencil className="h-3.5 w-3.5" />
         </Button>
@@ -135,7 +137,7 @@ export function TopicRow({
           size="icon"
           className="h-7 w-7 text-destructive"
           onClick={onDelete}
-          aria-label="Delete topic"
+          aria-label="Delete milestone"
         >
           <Trash2 className="h-3.5 w-3.5" />
         </Button>
