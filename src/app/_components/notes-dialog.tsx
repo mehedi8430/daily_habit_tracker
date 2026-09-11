@@ -4,6 +4,7 @@ import * as React from "react";
 import { formatFullDate } from "@/lib/date";
 import { useHabitStore } from "@/stores/store";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 import {
   Dialog,
   DialogContent,
@@ -70,7 +71,13 @@ export function NotesDialog({
         <DialogHeader>
           <DialogTitle>Notes</DialogTitle>
           <DialogDescription>
-            {habitName} 
+            {habitName}
+            <Link
+              href={`/habits/${habitId}/milestones`}
+              className="ml-2 text-xs underline underline-offset-2 hover:text-foreground"
+            >
+              Manage milestones
+            </Link>
             {/* &mdash; {formatFullDate(date)} */}
           </DialogDescription>
         </DialogHeader>
