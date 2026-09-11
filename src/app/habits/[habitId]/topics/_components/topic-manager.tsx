@@ -29,6 +29,7 @@ import type { HabitTopic, TopicStatus } from "@/lib/types";
 import * as actions from "@/app/actions/topic.actions";
 import { emptyTopic, TopicForm } from "./topic-form";
 import { TopicRow } from "./topic-row";
+import { TopicViewDialog } from "./topic-view-dialog";
 
 export function TopicManager({
   habitId,
@@ -46,6 +47,7 @@ export function TopicManager({
   const [form, setForm] = React.useState<typeof emptyTopic | HabitTopic | null>(
     null,
   );
+  const [viewing, setViewing] = React.useState<HabitTopic | null>(null);
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
   );
@@ -140,8 +142,8 @@ export function TopicManager({
             <div className="grid grid-cols-[2rem_minmax(10rem,1.2fr)_9rem_9rem_minmax(14rem,1fr)_minmax(14rem,1fr)_5rem_5rem] items-center gap-x-4 bg-muted/60 px-0 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               <span />
               <span className="px-3">Topic</span>
-              <span className="px-2">Start date</span>
-              <span className="px-2">Target date</span>
+              <span className="">Start date</span>
+              <span className="">Target date</span>
               <span className="px-3">Details</span>
               <span className="px-3">Resources</span>
               <span className="px-2">Status</span>
@@ -163,6 +165,7 @@ export function TopicManager({
                     onEdit={() => setForm(topic)}
                     onDelete={() => removeTopic(topic)}
                     onStatus={(status) => updateStatus(topic, status)}
+                    onView={() => setViewing(topic)}
                   />
                 ))}
               </SortableContext>
@@ -205,6 +208,14 @@ export function TopicManager({
             )}
           </DialogContent>
         </Dialog>
+        <TopicViewDialog
+          topic={viewing}
+          onClose={() => setViewing(null)}
+          onEdit={() => {
+            if (viewing) setForm(viewing);
+            setViewing(null);
+          }}
+        />
       </section>
     </div>
   );

@@ -12,14 +12,14 @@ import { Button } from "@/components/ui/button";
 import type { HabitTopic, TopicStatus } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
-const statusLabels: Record<TopicStatus, string> = {
+export const statusLabels: Record<TopicStatus, string> = {
   planned: "Planned",
   in_progress: "In progress",
   done: "Done",
   skipped: "Skipped",
 };
 
-const statusStyles: Record<TopicStatus, string> = {
+export const statusStyles: Record<TopicStatus, string> = {
   planned:
     "border-slate-300 bg-slate-50 text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300",
   in_progress:
@@ -34,11 +34,13 @@ export function TopicRow({
   onEdit,
   onDelete,
   onStatus,
+  onView,
 }: {
   topic: HabitTopic;
   onEdit: () => void;
   onDelete: () => void;
   onStatus: (status: TopicStatus) => void;
+  onView: () => void;
 }) {
   const {
     attributes,
@@ -65,19 +67,21 @@ export function TopicRow({
       >
         <GripVertical className="h-4 w-4" />
       </button>
-      <div
+      <button
+        onClick={onView}
         className={cn(
-          "min-w-0 px-3 py-3",
+          "min-w-0 px-3 py-3 text-left hover:underline",
           topic.status === "done" && "text-muted-foreground line-through",
         )}
         title={topic.title}
+        aria-label={`View ${topic.title}`}
       >
         {topic.title}
-      </div>
-      <div className="px-2 py-3 text-xs tabular-nums text-muted-foreground">
+      </button>
+      <div className="py-3 text-xs tabular-nums text-muted-foreground">
         {topic.startDate || "Anytime"}
       </div>
-      <div className="px-2 py-3 text-xs tabular-nums text-muted-foreground">
+      <div className="py-3 text-xs tabular-nums text-muted-foreground">
         {topic.targetDate || "-"}
       </div>
       <div
