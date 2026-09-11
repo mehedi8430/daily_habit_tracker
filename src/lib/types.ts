@@ -2,6 +2,7 @@ export interface Habit {
   id: string;
   name: string;
   goal: string;
+  notes: string | null;
   emoji?: string;
   category: string;
   order: number;

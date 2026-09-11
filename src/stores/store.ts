@@ -59,6 +59,7 @@ export const useHabitStore = create<HabitState>()((set, get) => ({
       id: tempId,
       name: data.name,
       goal: data.goal,
+      notes: null,
       category: data.category,
       order: get().habits.length,
       createdAt: new Date().toISOString(),
