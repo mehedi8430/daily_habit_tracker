@@ -31,7 +31,7 @@ export function SortableRow({
   toggle: (habitId: string, date: Date) => void;
   onEdit: (h: Habit) => void;
   onDelete: (h: Habit) => void;
-  onOpenNotes: (h: Habit, date: Date) => void;
+  onOpenNotes: (h: Habit) => void;
   cols: string;
 }) {
   const {
@@ -75,7 +75,7 @@ export function SortableRow({
         </button>
         <button
           type="button"
-          onClick={() => onOpenNotes(habit, days[0])}
+          onClick={() => onOpenNotes(habit)}
           className="max-w-60 truncate text-left font-medium hover:underline"
           title="Open notes"
         >
