@@ -38,6 +38,8 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Flame, Trophy } from "lucide-react";
 import { Habit } from "@/lib/types";
 import { CompletionRow } from "@/app/actions/habit.actions";
+import { PlannerTask } from "@/lib/planner-types";
+import { getPlannerTasksBetween } from "@/app/actions/planner.actions";
 
 const HEATMAP_LEVELS = [
   "rgba(22,163,74,0.12)",
@@ -56,9 +58,39 @@ function heatColor(ratio: number): string {
 interface AnalyticsProps {
   initialHabits: Habit[];
   initialCompletions: CompletionRow[];
+  initialPlannerTasks: PlannerTask[];
 }
 
-export function Analytics({ initialHabits, initialCompletions }: AnalyticsProps) {
+const WORKED_STATUSES = ["done", "in_progress"];
+
+interface TimeWorkedPoint {
+  date?: string;
+  month?: string;
+  week?: string;
+  full: string;
+  hours: number;
+  mins: number;
+}
+
+function workedMinutes(tasks: PlannerTask[], date: string): number {
+  return tasks
+    .filter(
+      (t) =>
+        t.date === date &&
+        t.durationMinutes &&
+        WORKED_STATUSES.includes(t.status)
+    )
+    .reduce((sum, t) => sum + (t.durationMinutes ?? 0), 0);
+}
+
+function formatDuration(mins: number): string {
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  if (h === 0) return `${m}m`;
+  return m === 0 ? `${h}h` : `${h}h ${m}m`;
+}
+
+export function Analytics({ initialHabits, initialCompletions, initialPlannerTasks }: AnalyticsProps) {
   const habits = useHabitStore((s) => s.habits);
   const completions = useHabitStore((s) => s.completions);
   const initialized = useHabitStore((s) => s.initialized);
@@ -73,6 +105,8 @@ export function Analytics({ initialHabits, initialCompletions }: AnalyticsProps)
   const [cursor] = React.useState<Date>(() => new Date());
   const [yearCursor, setYearCursor] = React.useState<number>(new Date().getFullYear());
   const [view, setView] = React.useState<"month" | "week" | "year">("month");
+  const [timeView, setTimeView] = React.useState<"day" | "week">("day");
+  const [plannerTasks, setPlannerTasks] = React.useState<PlannerTask[]>(initialPlannerTasks);
 
   const monthDays = React.useMemo(
     () => getMonthDays(cursor.getFullYear(), cursor.getMonth()),
@@ -84,6 +118,30 @@ export function Analytics({ initialHabits, initialCompletions }: AnalyticsProps)
   }, [cursor]);
 
   const days = view === "month" ? monthDays : weekDays;
+
+  const [from, to] = React.useMemo(() => {
+    if (view === "year") {
+      return [
+        format(new Date(yearCursor, 0, 1), "yyyy-MM-dd"),
+        format(new Date(yearCursor, 11, 31), "yyyy-MM-dd"),
+      ];
+    }
+    if (days.length === 0) return ["", ""];
+    return [toKey(days[0]), toKey(days[days.length - 1])];
+  }, [view, yearCursor, days]);
+
+  React.useEffect(() => {
+    if (!from || !to) return;
+    let cancelled = false;
+    getPlannerTasksBetween(from, to)
+      .then((res) => {
+        if (!cancelled) setPlannerTasks(res.tasks);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [from, to]);
   const sortedHabits = React.useMemo(
     () => [...habits].sort((a, b) => a.order - b.order),
     [habits]
@@ -118,6 +176,43 @@ export function Analytics({ initialHabits, initialCompletions }: AnalyticsProps)
       score: pct,
     };
   });
+
+  // Time worked (planner) per day
+  const timeWorkedData: TimeWorkedPoint[] = days.map((d) => {
+    const mins = workedMinutes(plannerTasks, toKey(d));
+    return {
+      date: formatDayShort(d),
+      full: format(d, "MMM d"),
+      hours: Math.round((mins / 60) * 10) / 10,
+      mins,
+    };
+  });
+
+  // Time worked (planner) per week within the current month
+  const timeWorkedWeekly: TimeWorkedPoint[] = React.useMemo(() => {
+    const buckets: { days: Date[]; start: number; end: number }[] = [];
+    for (let i = 0; i < monthDays.length; i += 7) {
+      buckets.push({
+        days: monthDays.slice(i, i + 7),
+        start: i + 1,
+        end: Math.min(i + 7, monthDays.length),
+      });
+    }
+    return buckets.map((b, idx) => {
+      const mins = b.days.reduce(
+        (sum, d) => sum + workedMinutes(plannerTasks, toKey(d)),
+        0
+      );
+      const first = format(b.days[0], "MMM d");
+      const last = format(b.days[b.days.length - 1], "MMM d");
+      return {
+        week: `Week ${idx + 1}`,
+        full: `Week ${idx + 1} · ${first}–${last}`,
+        hours: Math.round((mins / 60) * 10) / 10,
+        mins,
+      };
+    });
+  }, [monthDays, plannerTasks]);
 
   // Streaks
   const streaks = sortedHabits.map((h) => ({
@@ -158,6 +253,18 @@ export function Analytics({ initialHabits, initialCompletions }: AnalyticsProps)
     return {
       month: format(new Date(yearCursor, m, 1), "MMM"),
       score: Math.round(pct),
+    };
+  });
+  const timeWorkedMonthly: TimeWorkedPoint[] = monthBuckets.map((monthDaysArr, m) => {
+    const mins = monthDaysArr.reduce(
+      (sum, d) => sum + workedMinutes(plannerTasks, toKey(d)),
+      0
+    );
+    return {
+      month: format(new Date(yearCursor, m, 1), "MMM"),
+      full: format(new Date(yearCursor, m, 1), "MMMM yyyy"),
+      hours: Math.round((mins / 60) * 10) / 10,
+      mins,
     };
   });
   const yearStreaks = sortedHabits.map((h) => ({
@@ -290,6 +397,75 @@ export function Analytics({ initialHabits, initialCompletions }: AnalyticsProps)
           </CardContent>
         </Card>
       </div>
+
+      {/* Time worked (planner) */}
+      <Card>
+        <CardHeader>
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <CardTitle>Time Worked</CardTitle>
+              <CardDescription>
+                {view === "year"
+                  ? `Hours of completed planner tasks in each month of ${yearCursor}`
+                  : view === "week"
+                    ? "Hours of completed planner tasks per day this week"
+                    : timeView === "day"
+                      ? "Hours of completed planner tasks per day this month"
+                      : "Hours of completed planner tasks per week this month"}
+              </CardDescription>
+            </div>
+            {view === "month" && (
+              <Tabs value={timeView} onValueChange={(v) => setTimeView(v as "day" | "week")}>
+                <TabsList>
+                  <TabsTrigger value="day">Day</TabsTrigger>
+                  <TabsTrigger value="week">Week</TabsTrigger>
+                </TabsList>
+              </Tabs>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="h-[300px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={view === "year" ? timeWorkedMonthly : view === "month" && timeView === "week" ? timeWorkedWeekly : timeWorkedData}
+                margin={{ left: -10, right: 10 }}
+              >
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  className="stroke-muted"
+                  vertical={false}
+                />
+                <XAxis
+                  dataKey={view === "year" ? "month" : view === "month" && timeView === "week" ? "week" : "date"}
+                  tick={{ fontSize: 11 }}
+                  className="fill-muted-foreground"
+                />
+                <YAxis
+                  tick={{ fontSize: 12 }}
+                  className="fill-muted-foreground"
+                />
+                <RTooltip
+                  contentStyle={{
+                    background: "hsl(var(--popover))",
+                    border: "1px solid hsl(var(--border))",
+                    borderRadius: 8,
+                    fontSize: 12,
+                  }}
+                  formatter={(value, _n, item) => [
+                    formatDuration(item?.payload?.mins ?? 0),
+                    "Time worked",
+                  ]}
+                  labelFormatter={(_l, payload) =>
+                    (payload?.[0]?.payload?.full as string) ?? ""
+                  }
+                />
+                <Bar dataKey="hours" radius={[4, 4, 0, 0]} fill="hsl(var(--primary))" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Yearly month-by-month completion chart */}
       {view === "year" && (

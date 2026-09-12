@@ -43,6 +43,23 @@ export async function getPlannerTasks(date: string): Promise<{ tasks: PlannerTas
   return { tasks: (data ?? []).map((task) => mapTask(task as Record<string, unknown>)) };
 }
 
+export async function getPlannerTasksBetween(
+  from: string,
+  to: string
+): Promise<{ tasks: PlannerTask[] }> {
+  const { supabase, user } = await getUser();
+  const { data, error } = await supabase
+    .from("daily_planner_tasks")
+    .select("*")
+    .eq("user_id", user.id)
+    .gte("date", from)
+    .lte("date", to)
+    .order("date", { ascending: true });
+
+  if (error) throw new Error(`Failed to fetch planner tasks: ${error.message}`);
+  return { tasks: (data ?? []).map((task) => mapTask(task as Record<string, unknown>)) };
+}
+
 export async function createPlannerTask(data: {
   title: string;
   date: string;
