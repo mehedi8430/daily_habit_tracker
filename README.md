@@ -13,9 +13,13 @@ A modern daily habit tracker built with **Next.js** and **Supabase**. Track habi
 
 - **Email & password authentication** — sign up, log in, and log out, with protected routes that redirect unauthenticated visitors to the login page.
 - **Multi-user by design** — each user's habits and completions are isolated at the database level using Postgres Row Level Security (RLS).
-- **Calendar grid** — month view with one-click completion toggles for every habit.
+- **Calendar grid** — month view with one-click completion toggles for every habit, plus a per-month done counter.
+- **Habit categories & goals** — tag each habit with a color-coded category (Health, Mind, Work, Fitness, Other) and a written goal.
 - **Drag-and-drop ordering** — rearrange habits into the order that works for you.
-- **Analytics dashboard** — completion rates, per-habit charts, current and best streaks, and a GitHub-style yearly heatmap.
+- **Habit notes** — click any habit's name to attach free-form notes.
+- **Milestones** — break each habit into tracked milestones with start/target dates, details, resources, and progress statuses.
+- **Daily planner** — plan each day with time-blocked tasks: start time, duration, priority, notes, and a planned → in-progress → done → skipped workflow.
+- **Analytics dashboard** — completion rates, per-habit and daily-score charts, time worked from planner tasks, current and best streaks, and a GitHub-style yearly heatmap.
 - **Dark & light mode** — switch themes from the header.
 
 ## Tech Stack
@@ -76,10 +80,12 @@ src/
 ├── app/
 │   ├── (auth)/          # Login and signup pages
 │   ├── api/auth/        # Signup, login, logout, session endpoints
+│   ├── habits/          # Milestone hub and per-habit milestone manager
+│   ├── planner/         # Daily planner
 │   ├── analytics/       # Analytics dashboard
-│   ├── actions.ts       # Server actions for habits & completions
+│   ├── actions/         # Server actions for habits, completions, planner & milestones
 │   └── page.tsx         # Habit calendar (home)
-├── components/          # Calendar grid, habit form, analytics, header, UI kit
+├── components/          # Calendar grid, milestone & planner UI, analytics, header, UI kit
 └── lib/                 # Supabase clients, Zustand store, date helpers, types
 ```
 
