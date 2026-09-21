@@ -68,7 +68,7 @@ export function TaskRow({
       ref={setNodeRef}
       style={style}
       className={cn(
-        "group grid grid-cols-[auto_auto_minmax(0,1fr)_auto] items-center gap-3 rounded-lg border bg-card px-3 py-3 transition-colors hover:border-foreground/20 sm:grid-cols-[auto_5rem_auto_minmax(0,1fr)_auto]",
+        "group grid grid-cols-[auto_auto_minmax(0,1fr)] gap-x-3 gap-y-1 rounded-lg border bg-card px-3 py-3 transition-colors hover:border-foreground/20 sm:grid-cols-[auto_5rem_auto_minmax(0,1fr)_auto] sm:items-center sm:gap-y-3",
         isDragging && "relative z-10 opacity-90 shadow-lg",
         terminal && "opacity-65",
       )}
@@ -76,19 +76,21 @@ export function TaskRow({
       <button
         {...attributes}
         {...listeners}
-        className="cursor-grab text-muted-foreground hover:text-foreground active:cursor-grabbing"
+        className="col-start-1 row-start-1 cursor-grab text-muted-foreground hover:text-foreground active:cursor-grabbing sm:col-auto sm:row-auto"
         aria-label="Drag to reorder"
       >
         <GripVertical className="h-4 w-4" />
       </button>
-      <div className="text-right text-xs tabular-nums text-muted-foreground sm:col-start-2">
+      <div className="hidden text-right text-xs tabular-nums text-muted-foreground sm:col-start-2 sm:block">
         {formatTime(task.startTime)}
       </div>
-      <TaskStatusButton
-        task={task}
-        onChange={(status) => onStatusChange(task, status)}
-      />
-      <div className="min-w-0">
+      <div className="col-start-2 row-start-1 sm:col-auto sm:row-auto">
+        <TaskStatusButton
+          task={task}
+          onChange={(status) => onStatusChange(task, status)}
+        />
+      </div>
+      <div className="col-start-3 row-start-1 min-w-0 sm:col-auto sm:row-auto">
         <div className="flex flex-wrap items-center gap-2">
           <p
             className={cn(
@@ -108,12 +110,13 @@ export function TaskRow({
           </span>
         </div>
         <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+          <span className="sm:hidden">{formatTime(task.startTime)}</span>
           <span>{statusLabels[task.status]}</span>
           {task.durationMinutes && <span>{task.durationMinutes} min</span>}
           {task.notes && <span className="truncate">{task.notes}</span>}
         </div>
       </div>
-      <div className="flex items-center gap-1 opacity-70 transition-opacity group-hover:opacity-100">
+      <div className="col-span-3 row-start-2 mt-1 flex items-center justify-end gap-1 border-t pt-2 sm:col-auto sm:row-auto sm:mt-0 sm:border-t-0 sm:pt-0 sm:opacity-70 sm:transition-opacity sm:group-hover:opacity-100">
         {task.status !== "done" && task.status !== "skipped" && (
           <>
             <Button

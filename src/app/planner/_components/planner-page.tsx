@@ -247,7 +247,7 @@ export function PlannerPage({ initialTasks, today }: PlannerPageProps) {
 
       <div className="grid gap-6 lg:grid-cols-[16rem_minmax(0,1fr)]">
         <aside className="space-y-3">
-          <div className="grid gap-3">
+          <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
             <div className="rounded-lg border bg-card p-4">
               <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                 Completed

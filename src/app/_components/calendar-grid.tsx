@@ -128,7 +128,7 @@ export function CalendarGrid({
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
-            <h2 className="min-w-40 text-center text-xl font-bold">
+            <h2 className="min-w-32 text-center text-xl font-bold sm:min-w-40">
               {monthLabel}
             </h2>
             <Button
@@ -150,12 +150,13 @@ export function CalendarGrid({
           </div>
           <div className="flex items-center gap-2">
             <Link href="/planner">
-              <Button variant="outline" className="gap-2">
-                <CalendarDays className="h-4 w-4" /> Daily Planner
+              <Button variant="outline" className="gap-2 px-2.5 sm:px-4">
+                <CalendarDays className="h-4 w-4" />
+                <span className="hidden sm:inline">Daily Planner</span>
               </Button>
             </Link>
-            <Button onClick={openAdd} className="gap-2">
-              <Plus className="h-4 w-4" /> Add Habit
+            <Button onClick={openAdd} className="gap-2 px-2.5 sm:px-4">
+              <Plus className="h-4 w-4" /> <span className="hidden sm:inline">Add Habit</span>
             </Button>
           </div>
         </div>

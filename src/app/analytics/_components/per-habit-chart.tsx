@@ -62,7 +62,7 @@ export function PerHabitChart({ data, dayCount }: PerHabitChartProps) {
               <YAxis
                 type="category"
                 dataKey="name"
-                width={150}
+                width={120}
                 tick={{ fontSize: 12 }}
                 className="fill-muted-foreground"
               />

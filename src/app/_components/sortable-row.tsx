@@ -76,7 +76,7 @@ export function SortableRow({
         <button
           type="button"
           onClick={() => onOpenNotes(habit)}
-          className="max-w-60 truncate text-left font-medium hover:underline"
+          className="max-w-[120px] truncate text-left font-medium hover:underline sm:max-w-60"
           title="Open notes"
         >
           {habit.name}
@@ -86,7 +86,7 @@ export function SortableRow({
           style={{ backgroundColor: cat.color }}
           title={cat.label}
         />
-        <div className="ml-auto flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 data-[open=true]:opacity-100 [&:hover]:opacity-100">
+        <div className="ml-auto flex items-center gap-0.5 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 sm:[&:hover]:opacity-100">
           <Button
             variant="ghost"
             size="icon"

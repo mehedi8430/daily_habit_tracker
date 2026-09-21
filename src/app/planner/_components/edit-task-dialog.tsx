@@ -15,37 +15,28 @@ import { toast } from "sonner";
 import { updatePlannerTask } from "@/app/actions/planner.actions";
 import type { PlannerPriority, PlannerTask } from "@/lib/planner-types";
 
-export function EditTaskDialog({
+function EditTaskForm({
   task,
-  open,
-  onOpenChange,
-  onUpdated,
+  onSaved,
+  onCancel,
 }: {
-  task: PlannerTask | null;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onUpdated: (task: PlannerTask) => void;
+  task: PlannerTask;
+  onSaved: (task: PlannerTask) => void;
+  onCancel: () => void;
 }) {
-  const [title, setTitle] = React.useState("");
-  const [startTime, setStartTime] = React.useState("");
-  const [duration, setDuration] = React.useState("");
-  const [priority, setPriority] = React.useState<PlannerPriority>("medium");
-  const [notes, setNotes] = React.useState("");
+  const [title, setTitle] = React.useState(task.title);
+  const [startTime, setStartTime] = React.useState(task.startTime ?? "");
+  const [duration, setDuration] = React.useState(
+    task.durationMinutes ? String(task.durationMinutes) : ""
+  );
+  const [priority, setPriority] = React.useState<PlannerPriority>(
+    task.priority
+  );
+  const [notes, setNotes] = React.useState(task.notes ?? "");
   const [saving, setSaving] = React.useState(false);
-
-  React.useEffect(() => {
-    if (task && open) {
-      setTitle(task.title);
-      setStartTime(task.startTime ?? "");
-      setDuration(task.durationMinutes ? String(task.durationMinutes) : "");
-      setPriority(task.priority);
-      setNotes(task.notes ?? "");
-    }
-  }, [task, open]);
 
   const submit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!task) return;
     const trimmed = title.trim();
     if (!trimmed) return;
     setSaving(true);
@@ -61,94 +52,117 @@ export function EditTaskDialog({
       toast.error(result.error);
       return;
     }
-    onUpdated(result.task);
-    onOpenChange(false);
+    onSaved(result.task);
+    onCancel();
     toast.success("Task updated");
   };
 
+  return (
+    <form onSubmit={submit} className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="edit-title">Title</Label>
+        <Input
+          id="edit-title"
+          value={title}
+          onChange={(event) => setTitle(event.target.value)}
+          placeholder="What needs to happen?"
+          autoFocus
+          disabled={saving}
+        />
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="space-y-2">
+          <Label htmlFor="edit-time">Start time</Label>
+          <Input
+            id="edit-time"
+            type="time"
+            value={startTime}
+            onChange={(event) => setStartTime(event.target.value)}
+            disabled={saving}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="edit-duration">Duration (min)</Label>
+          <Input
+            id="edit-duration"
+            type="number"
+            min="1"
+            step="5"
+            placeholder="30"
+            value={duration}
+            onChange={(event) => setDuration(event.target.value)}
+            disabled={saving}
+          />
+        </div>
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="edit-priority">Priority</Label>
+        <select
+          id="edit-priority"
+          value={priority}
+          onChange={(event) =>
+            setPriority(event.target.value as PlannerPriority)
+          }
+          disabled={saving}
+          className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+        >
+          <option value="low">Low</option>
+          <option value="medium">Medium</option>
+          <option value="high">High</option>
+        </select>
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="edit-notes">Notes</Label>
+        <Input
+          id="edit-notes"
+          placeholder="Link, context, or definition of done"
+          value={notes}
+          onChange={(event) => setNotes(event.target.value)}
+          disabled={saving}
+        />
+      </div>
+      <DialogFooter>
+        <Button
+          type="button"
+          variant="ghost"
+          onClick={onCancel}
+          disabled={saving}
+        >
+          Cancel
+        </Button>
+        <Button type="submit" disabled={!title.trim() || saving}>
+          Save changes
+        </Button>
+      </DialogFooter>
+    </form>
+  );
+}
+
+export function EditTaskDialog({
+  task,
+  open,
+  onOpenChange,
+  onUpdated,
+}: {
+  task: PlannerTask | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onUpdated: (task: PlannerTask) => void;
+}) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Edit task</DialogTitle>
         </DialogHeader>
-        <form onSubmit={submit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="edit-title">Title</Label>
-            <Input
-              id="edit-title"
-              value={title}
-              onChange={(event) => setTitle(event.target.value)}
-              placeholder="What needs to happen?"
-              autoFocus
-              disabled={saving}
-            />
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="edit-time">Start time</Label>
-              <Input
-                id="edit-time"
-                type="time"
-                value={startTime}
-                onChange={(event) => setStartTime(event.target.value)}
-                disabled={saving}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="edit-duration">Duration (min)</Label>
-              <Input
-                id="edit-duration"
-                type="number"
-                min="1"
-                step="5"
-                placeholder="30"
-                value={duration}
-                onChange={(event) => setDuration(event.target.value)}
-                disabled={saving}
-              />
-            </div>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="edit-priority">Priority</Label>
-            <select
-              id="edit-priority"
-              value={priority}
-              onChange={(event) =>
-                setPriority(event.target.value as PlannerPriority)
-              }
-              disabled={saving}
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-            >
-              <option value="low">Low</option>
-              <option value="medium">Medium</option>
-              <option value="high">High</option>
-            </select>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="edit-notes">Notes</Label>
-            <Input
-              id="edit-notes"
-              placeholder="Link, context, or definition of done"
-              value={notes}
-              onChange={(event) => setNotes(event.target.value)}
-              disabled={saving}
-            />
-          </div>
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => onOpenChange(false)}
-              disabled={saving}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={!title.trim() || saving}>
-              Save changes
-            </Button>
-          </DialogFooter>
-        </form>
+        {task && open && (
+          <EditTaskForm
+            key={task.id}
+            task={task}
+            onSaved={onUpdated}
+            onCancel={() => onOpenChange(false)}
+          />
+        )}
       </DialogContent>
     </Dialog>
   );
