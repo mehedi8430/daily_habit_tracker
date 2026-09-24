@@ -28,7 +28,9 @@ import {
   ChevronLeft,
   ChevronRight,
   Clock3,
+  CalendarRange,
 } from "lucide-react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -54,14 +56,15 @@ import { TaskRow } from "./task-row";
 interface PlannerPageProps {
   initialTasks: PlannerTask[];
   today: string;
+  selectedDate?: string;
 }
 
 function dateKey(date: Date): string {
   return format(date, "yyyy-MM-dd");
 }
 
-export function PlannerPage({ initialTasks, today }: PlannerPageProps) {
-  const [selectedDate, setSelectedDate] = React.useState(today);
+export function PlannerPage({ initialTasks, today, selectedDate: selectedDateProp }: PlannerPageProps) {
+  const [selectedDate, setSelectedDate] = React.useState(selectedDateProp ?? today);
   const [tasks, setTasks] = React.useState(initialTasks);
   const [orderedIds, setOrderedIds] = React.useState<string[]>(() =>
     [...initialTasks]
@@ -210,38 +213,46 @@ export function PlannerPage({ initialTasks, today }: PlannerPageProps) {
             close the day with a clear record of what moved forward.
           </p>
         </div>
-        <div className="flex items-center gap-1 rounded-lg border bg-card p-1">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => changeDate(-1)}
-            aria-label="Previous day"
-            title="Previous day"
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <Button
-            variant={isToday(date) ? "secondary" : "ghost"}
-            size="sm"
-            onClick={() => setSelectedDate(today)}
-          >
-            {isToday(date)
-              ? "Today"
-              : isTomorrow(date)
-                ? "Tomorrow"
-                : isYesterday(date)
-                  ? "Yesterday"
-                  : format(date, "EEE, MMM d")}
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => changeDate(1)}
-            aria-label="Next day"
-            title="Next day"
-          >
-            <ChevronRight className="h-4 w-4" />
-          </Button>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 rounded-lg border bg-card p-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => changeDate(-1)}
+              aria-label="Previous day"
+              title="Previous day"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button
+              variant={isToday(date) ? "secondary" : "ghost"}
+              size="sm"
+              onClick={() => setSelectedDate(today)}
+            >
+              {isToday(date)
+                ? "Today"
+                : isTomorrow(date)
+                  ? "Tomorrow"
+                  : isYesterday(date)
+                    ? "Yesterday"
+                    : format(date, "EEE, MMM d")}
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => changeDate(1)}
+              aria-label="Next day"
+              title="Next day"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+          <Link href="/planner/weekly">
+            <Button variant="outline" className="gap-2">
+              <CalendarRange className="h-4 w-4" />
+              Weekly planner
+            </Button>
+          </Link>
         </div>
       </header>
 
