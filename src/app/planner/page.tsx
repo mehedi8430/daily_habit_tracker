@@ -1,13 +1,13 @@
 import { format } from "date-fns";
 import { redirect } from "next/navigation";
-import { PlannerPage } from "@/app/planner/_components/planner-page";
 import {
   getPlannerTasks,
   getWeeklyGoalsForDate,
 } from "@/app/actions/planner.actions";
 import { createClient } from "@/lib/supabase/server";
+import { PlannerManagement } from "./_components/planner-management";
 
-export default async function PlannerRoute({
+export default async function PlannerPage({
   searchParams,
 }: {
   searchParams: Promise<{ date?: string }>;
@@ -33,7 +33,7 @@ export default async function PlannerRoute({
   ]);
 
   return (
-    <PlannerPage
+    <PlannerManagement
       initialTasks={tasks}
       initialWeeklyGoals={weeklyGoalData.goals}
       initialWeeklyGoalOccurrences={weeklyGoalData.occurrences}
