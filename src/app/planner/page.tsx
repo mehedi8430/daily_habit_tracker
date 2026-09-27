@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 export default async function PlannerRoute({
   searchParams,
 }: {
-  searchParams?: Promise<{ date?: string }> | { date?: string };
+  searchParams: Promise<{ date?: string }>;
 }) {
   const supabase = await createClient();
   const {
@@ -16,10 +16,7 @@ export default async function PlannerRoute({
 
   if (!user) redirect("/login");
 
-  const resolvedParams =
-    searchParams && typeof searchParams.then === "function"
-      ? await searchParams
-      : searchParams;
+  const resolvedParams = await searchParams;
 
   const today = format(new Date(), "yyyy-MM-dd");
   const requestedDate =

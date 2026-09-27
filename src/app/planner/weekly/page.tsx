@@ -1,8 +1,8 @@
 import { format, startOfWeek } from "date-fns";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getPlannerTasksBetween } from "@/app/actions/planner.actions";
-import { WeeklyPlannerView } from "@/app/planner/weekly/_components/weekly-planner-view";
+import { getWeeklyPlannerData } from "@/app/actions/planner.actions";
+import { WeeklyPlannerView } from "./_components/weekly-planner-view";
 
 export default async function WeeklyPlannerPage() {
   const supabase = await createClient();
@@ -16,7 +16,13 @@ export default async function WeeklyPlannerPage() {
   const start = format(weekStart, "yyyy-MM-dd");
   const end = format(new Date(weekStart.getTime() + 6 * 24 * 60 * 60 * 1000), "yyyy-MM-dd");
 
-  const { tasks } = await getPlannerTasksBetween(start, end);
+  const { goals, occurrences } = await getWeeklyPlannerData(start, end);
 
-  return <WeeklyPlannerView initialTasks={tasks} defaultDate={start} />;
+  return (
+    <WeeklyPlannerView
+      initialGoals={goals}
+      initialOccurrences={occurrences}
+      defaultDate={start}
+    />
+  );
 }
