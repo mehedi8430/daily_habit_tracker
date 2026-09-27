@@ -112,6 +112,55 @@ export async function getWeeklyPlannerData(
   };
 }
 
+export async function getWeeklyGoalsForDate(
+  date: string,
+): Promise<{ goals: WeeklyPlannerGoal[]; occurrences: WeeklyPlannerGoalOccurrence[] }> {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    throw new Error("Choose a valid goal date");
+  }
+  const [year, month, day] = date.split("-").map(Number);
+  const parsedDate = new Date(year, month - 1, day, 12);
+  if (
+    parsedDate.getFullYear() !== year ||
+    parsedDate.getMonth() !== month - 1 ||
+    parsedDate.getDate() !== day
+  ) {
+    throw new Error("Choose a valid goal date");
+  }
+
+  const weekday = parsedDate.getDay() === 0 ? 7 : parsedDate.getDay();
+  const { supabase, user } = await getUser();
+  const [goalsResult, occurrencesResult] = await Promise.all([
+    supabase
+      .from("weekly_planner_goals")
+      .select("*")
+      .eq("user_id", user.id)
+      .eq("weekday", weekday)
+      .order("start_time", { ascending: true, nullsFirst: false }),
+    supabase
+      .from("weekly_planner_goal_occurrences")
+      .select("goal_id, occurrence_date, completed")
+      .eq("user_id", user.id)
+      .eq("occurrence_date", date),
+  ]);
+
+  if (goalsResult.error) {
+    throw new Error(`Failed to fetch weekly goals: ${goalsResult.error.message}`);
+  }
+  if (occurrencesResult.error) {
+    throw new Error(`Failed to fetch weekly goal progress: ${occurrencesResult.error.message}`);
+  }
+
+  return {
+    goals: (goalsResult.data ?? []).map((goal) => mapWeeklyGoal(goal as Record<string, unknown>)),
+    occurrences: (occurrencesResult.data ?? []).map((occurrence) => ({
+      goalId: occurrence.goal_id as string,
+      date: occurrence.occurrence_date as string,
+      completed: occurrence.completed as boolean,
+    })),
+  };
+}
+
 export async function createWeeklyPlannerGoal(data: {
   title: string;
   weekday: number;

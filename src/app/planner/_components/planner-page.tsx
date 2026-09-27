@@ -24,11 +24,13 @@ import {
 } from "date-fns";
 import {
   CalendarDays,
+  Check,
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
   Clock3,
   CalendarRange,
+  Circle,
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -44,17 +46,26 @@ import { toast } from "sonner";
 import {
   deletePlannerTask,
   getPlannerTasks,
+  getWeeklyGoalsForDate,
   movePlannerTaskToDate,
   reorderPlannerTasks,
+  setWeeklyPlannerGoalCompletion,
   updatePlannerTask,
 } from "@/app/actions/planner.actions";
-import type { PlannerStatus, PlannerTask } from "@/lib/planner-types";
+import type {
+  PlannerStatus,
+  PlannerTask,
+  WeeklyPlannerGoal,
+  WeeklyPlannerGoalOccurrence,
+} from "@/lib/planner-types";
 import { NewTaskForm } from "./new-task-form";
 import { EditTaskDialog } from "./edit-task-dialog";
 import { TaskRow } from "./task-row";
 
 interface PlannerPageProps {
   initialTasks: PlannerTask[];
+  initialWeeklyGoals: WeeklyPlannerGoal[];
+  initialWeeklyGoalOccurrences: WeeklyPlannerGoalOccurrence[];
   today: string;
   selectedDate?: string;
 }
@@ -63,9 +74,22 @@ function dateKey(date: Date): string {
   return format(date, "yyyy-MM-dd");
 }
 
-export function PlannerPage({ initialTasks, today, selectedDate: selectedDateProp }: PlannerPageProps) {
+export function PlannerPage({
+  initialTasks,
+  initialWeeklyGoals,
+  initialWeeklyGoalOccurrences,
+  today,
+  selectedDate: selectedDateProp,
+}: PlannerPageProps) {
   const [selectedDate, setSelectedDate] = React.useState(selectedDateProp ?? today);
   const [tasks, setTasks] = React.useState(initialTasks);
+  const [weeklyGoals, setWeeklyGoals] = React.useState(initialWeeklyGoals);
+  const [weeklyGoalOccurrences, setWeeklyGoalOccurrences] = React.useState(
+    initialWeeklyGoalOccurrences,
+  );
+  const [lastLoadedWeeklyDate, setLastLoadedWeeklyDate] = React.useState(
+    selectedDateProp ?? today,
+  );
   const [orderedIds, setOrderedIds] = React.useState<string[]>(() =>
     [...initialTasks]
       .sort((a, b) => {
@@ -78,7 +102,7 @@ export function PlannerPage({ initialTasks, today, selectedDate: selectedDatePro
       })
       .map((t) => t.id),
   );
-  const [lastLoadedDate, setLastLoadedDate] = React.useState(today);
+  const [lastLoadedDate, setLastLoadedDate] = React.useState(selectedDateProp ?? today);
   const [toDelete, setToDelete] = React.useState<PlannerTask | null>(null);
   const [editing, setEditing] = React.useState<PlannerTask | null>(null);
 
@@ -121,11 +145,41 @@ export function PlannerPage({ initialTasks, today, selectedDate: selectedDatePro
     };
   }, [selectedDate, lastLoadedDate]);
 
+  React.useEffect(() => {
+    if (selectedDate === lastLoadedWeeklyDate) return;
+    let cancelled = false;
+    getWeeklyGoalsForDate(selectedDate)
+      .then((result) => {
+        if (!cancelled) {
+          setWeeklyGoals(result.goals);
+          setWeeklyGoalOccurrences(result.occurrences);
+          setLastLoadedWeeklyDate(selectedDate);
+        }
+      })
+      .catch((error) => {
+        if (!cancelled) {
+          toast.error(
+            error instanceof Error ? error.message : "Failed to load weekly goals",
+          );
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedDate, lastLoadedWeeklyDate]);
+
   const date = parseISO(`${selectedDate}T12:00:00`);
-  const completedCount = tasks.filter((task) => task.status === "done").length;
+  const completedWeeklyGoalCount = weeklyGoals.filter((goal) =>
+    weeklyGoalOccurrences.some(
+      (occurrence) => occurrence.goalId === goal.id && occurrence.date === selectedDate && occurrence.completed,
+    ),
+  ).length;
+  const completedCount =
+    tasks.filter((task) => task.status === "done").length + completedWeeklyGoalCount;
+  const totalTaskCount = tasks.length + weeklyGoals.length;
   const activeCount = tasks.filter(
     (task) => task.status !== "done" && task.status !== "skipped",
-  ).length;
+  ).length + weeklyGoals.length - completedWeeklyGoalCount;
   const scheduledMinutes = tasks.reduce(
     (total, task) => total + (task.durationMinutes ?? 0),
     0,
@@ -199,6 +253,33 @@ export function PlannerPage({ initialTasks, today, selectedDate: selectedDatePro
     );
   };
 
+  const toggleWeeklyGoal = async (goal: WeeklyPlannerGoal) => {
+    const existing = weeklyGoalOccurrences.find(
+      (occurrence) => occurrence.goalId === goal.id && occurrence.date === selectedDate,
+    );
+    const completed = !(existing?.completed ?? false);
+    const previous = weeklyGoalOccurrences;
+    setWeeklyGoalOccurrences((current) =>
+      existing
+        ? current.map((occurrence) =>
+            occurrence.goalId === goal.id && occurrence.date === selectedDate
+              ? { ...occurrence, completed }
+              : occurrence,
+          )
+        : [...current, { goalId: goal.id, date: selectedDate, completed }],
+    );
+
+    const result = await setWeeklyPlannerGoalCompletion(
+      goal.id,
+      selectedDate,
+      completed,
+    );
+    if ("error" in result) {
+      setWeeklyGoalOccurrences(previous);
+      toast.error(result.error);
+    }
+  };
+
   return (
     <div className="mx-auto max-w-7xl space-y-6 p-4 sm:p-8">
       <header className="flex flex-col gap-5 border-b pb-6 sm:flex-row sm:items-end sm:justify-between">
@@ -266,7 +347,7 @@ export function PlannerPage({ initialTasks, today, selectedDate: selectedDatePro
               <p className="mt-1 text-2xl font-bold">
                 {completedCount}
                 <span className="text-base font-normal text-muted-foreground">
-                  /{tasks.length}
+                  /{totalTaskCount}
                 </span>
               </p>
             </div>
@@ -315,7 +396,7 @@ export function PlannerPage({ initialTasks, today, selectedDate: selectedDatePro
                 </p>
               </div>
             </div>
-            {sortedTasks.length === 0 ? (
+            {sortedTasks.length === 0 && weeklyGoals.length === 0 ? (
               <div className="rounded-xl border border-dashed px-6 py-16 text-center">
                 <CheckCircle2 className="mx-auto mb-3 h-8 w-8 text-muted-foreground" />
                 <h3 className="font-semibold">Nothing scheduled yet</h3>
@@ -324,7 +405,53 @@ export function PlannerPage({ initialTasks, today, selectedDate: selectedDatePro
                 </p>
               </div>
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-4">
+                {weeklyGoals.length > 0 && (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-sm font-semibold">Recurring goals</h3>
+                      <span className="text-xs text-muted-foreground">Repeats every {format(date, "EEEE")}</span>
+                    </div>
+                    {weeklyGoals.map((goal) => {
+                      const completed = weeklyGoalOccurrences.some(
+                        (occurrence) =>
+                          occurrence.goalId === goal.id &&
+                          occurrence.date === selectedDate &&
+                          occurrence.completed,
+                      );
+                      return (
+                        <div
+                          key={goal.id}
+                          className={`flex items-start gap-3 rounded-lg border bg-card px-3 py-3 ${completed ? "opacity-70" : ""}`}
+                        >
+                          <button
+                            type="button"
+                            onClick={() => void toggleWeeklyGoal(goal)}
+                            aria-label={`${completed ? "Mark incomplete" : "Complete"}: ${goal.title}`}
+                            title={completed ? "Mark incomplete" : "Mark complete"}
+                            className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border transition-colors ${completed ? "border-emerald-500 bg-emerald-500 text-white" : "border-muted-foreground/40 text-muted-foreground hover:border-primary hover:text-primary"}`}
+                          >
+                            {completed ? <Check className="h-4 w-4" /> : <Circle className="h-4 w-4" />}
+                          </button>
+                          <div className="min-w-0 flex-1">
+                            <p className={`text-sm font-medium ${completed ? "line-through text-muted-foreground" : ""}`}>
+                              {goal.title}
+                            </p>
+                            <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                              <span>Weekly goal</span>
+                              {goal.startTime && <span>{goal.startTime.slice(0, 5)}</span>}
+                              {goal.notes && <span>{goal.notes}</span>}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {sortedTasks.length > 0 && (
+                  <div className="space-y-2">
+                    {weeklyGoals.length > 0 && <h3 className="text-sm font-semibold">Daily tasks</h3>}
                 <DndContext
                   sensors={sensors}
                   collisionDetection={closestCenter}
@@ -346,6 +473,8 @@ export function PlannerPage({ initialTasks, today, selectedDate: selectedDatePro
                     ))}
                   </SortableContext>
                 </DndContext>
+                  </div>
+                )}
               </div>
             )}
           </section>

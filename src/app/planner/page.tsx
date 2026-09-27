@@ -1,7 +1,10 @@
 import { format } from "date-fns";
 import { redirect } from "next/navigation";
 import { PlannerPage } from "@/app/planner/_components/planner-page";
-import { getPlannerTasks } from "@/app/actions/planner.actions";
+import {
+  getPlannerTasks,
+  getWeeklyGoalsForDate,
+} from "@/app/actions/planner.actions";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function PlannerRoute({
@@ -24,7 +27,18 @@ export default async function PlannerRoute({
       ? resolvedParams.date
       : today;
 
-  const { tasks } = await getPlannerTasks(requestedDate);
+  const [{ tasks }, weeklyGoalData] = await Promise.all([
+    getPlannerTasks(requestedDate),
+    getWeeklyGoalsForDate(requestedDate),
+  ]);
 
-  return <PlannerPage initialTasks={tasks} today={today} selectedDate={requestedDate} />;
+  return (
+    <PlannerPage
+      initialTasks={tasks}
+      initialWeeklyGoals={weeklyGoalData.goals}
+      initialWeeklyGoalOccurrences={weeklyGoalData.occurrences}
+      today={today}
+      selectedDate={requestedDate}
+    />
+  );
 }
