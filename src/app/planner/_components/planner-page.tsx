@@ -81,7 +81,9 @@ export function PlannerPage({
   today,
   selectedDate: selectedDateProp,
 }: PlannerPageProps) {
-  const [selectedDate, setSelectedDate] = React.useState(selectedDateProp ?? today);
+  const [selectedDate, setSelectedDate] = React.useState(
+    selectedDateProp ?? today,
+  );
   const [tasks, setTasks] = React.useState(initialTasks);
   const [weeklyGoals, setWeeklyGoals] = React.useState(initialWeeklyGoals);
   const [weeklyGoalOccurrences, setWeeklyGoalOccurrences] = React.useState(
@@ -102,7 +104,9 @@ export function PlannerPage({
       })
       .map((t) => t.id),
   );
-  const [lastLoadedDate, setLastLoadedDate] = React.useState(selectedDateProp ?? today);
+  const [lastLoadedDate, setLastLoadedDate] = React.useState(
+    selectedDateProp ?? today,
+  );
   const [toDelete, setToDelete] = React.useState<PlannerTask | null>(null);
   const [editing, setEditing] = React.useState<PlannerTask | null>(null);
 
@@ -135,10 +139,14 @@ export function PlannerPage({
         }
       })
       .catch((error) => {
-        if (!cancelled)
+        if (!cancelled) {
+          setTasks([]);
+          setOrderedIds([]);
+          setLastLoadedDate(selectedDate);
           toast.error(
             error instanceof Error ? error.message : "Failed to load planner",
           );
+        }
       });
     return () => {
       cancelled = true;
@@ -158,8 +166,13 @@ export function PlannerPage({
       })
       .catch((error) => {
         if (!cancelled) {
+          setWeeklyGoals([]);
+          setWeeklyGoalOccurrences([]);
+          setLastLoadedWeeklyDate(selectedDate);
           toast.error(
-            error instanceof Error ? error.message : "Failed to load weekly goals",
+            error instanceof Error
+              ? error.message
+              : "Failed to load weekly goals",
           );
         }
       });
@@ -169,17 +182,25 @@ export function PlannerPage({
   }, [selectedDate, lastLoadedWeeklyDate]);
 
   const date = parseISO(`${selectedDate}T12:00:00`);
+  const isDateLoading =
+    selectedDate !== lastLoadedDate || selectedDate !== lastLoadedWeeklyDate;
   const completedWeeklyGoalCount = weeklyGoals.filter((goal) =>
     weeklyGoalOccurrences.some(
-      (occurrence) => occurrence.goalId === goal.id && occurrence.date === selectedDate && occurrence.completed,
+      (occurrence) =>
+        occurrence.goalId === goal.id &&
+        occurrence.date === selectedDate &&
+        occurrence.completed,
     ),
   ).length;
   const completedCount =
-    tasks.filter((task) => task.status === "done").length + completedWeeklyGoalCount;
+    tasks.filter((task) => task.status === "done").length +
+    completedWeeklyGoalCount;
   const totalTaskCount = tasks.length + weeklyGoals.length;
-  const activeCount = tasks.filter(
-    (task) => task.status !== "done" && task.status !== "skipped",
-  ).length + weeklyGoals.length - completedWeeklyGoalCount;
+  const activeCount =
+    tasks.filter((task) => task.status !== "done" && task.status !== "skipped")
+      .length +
+    weeklyGoals.length -
+    completedWeeklyGoalCount;
   const scheduledMinutes = tasks.reduce(
     (total, task) => total + (task.durationMinutes ?? 0),
     0,
@@ -255,7 +276,8 @@ export function PlannerPage({
 
   const toggleWeeklyGoal = async (goal: WeeklyPlannerGoal) => {
     const existing = weeklyGoalOccurrences.find(
-      (occurrence) => occurrence.goalId === goal.id && occurrence.date === selectedDate,
+      (occurrence) =>
+        occurrence.goalId === goal.id && occurrence.date === selectedDate,
     );
     const completed = !(existing?.completed ?? false);
     const previous = weeklyGoalOccurrences;
@@ -282,6 +304,7 @@ export function PlannerPage({
 
   return (
     <div className="mx-auto max-w-7xl space-y-6 p-4 sm:p-8">
+      {/* Header */}
       <header className="flex flex-col gap-5 border-b pb-6 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <div className="mb-3 flex items-center gap-2 text-sm text-muted-foreground">
@@ -337,8 +360,21 @@ export function PlannerPage({
         </div>
       </header>
 
+      {/* Main Content */}
       <div className="grid gap-6 lg:grid-cols-[16rem_minmax(0,1fr)]">
+        {/* Sidebar */}
         <aside className="space-y-3">
+          {isDateLoading ? (
+            <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1" aria-label="Loading daily planner summary">
+              {Array.from({ length: 3 }, (_, index) => (
+                <div key={index} className="animate-pulse rounded-lg border bg-card p-4">
+                  <div className="h-3 w-20 rounded bg-muted" />
+                  <div className="mt-3 h-8 w-24 rounded bg-muted" />
+                  <div className="mt-2 h-3 w-28 rounded bg-muted" />
+                </div>
+              ))}
+            </div>
+          ) : (
           <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
             <div className="rounded-lg border bg-card p-4">
               <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
@@ -376,8 +412,10 @@ export function PlannerPage({
               </p>
             </div>
           </div>
+          )}
         </aside>
 
+        {/* Task Form and Task List */}
         <div className="space-y-6">
           <NewTaskForm
             date={selectedDate}
@@ -387,7 +425,7 @@ export function PlannerPage({
             }}
           />
 
-          <section aria-live="polite" className="space-y-3">
+          <section aria-live="polite" aria-busy={isDateLoading} className="space-y-3">
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-lg font-semibold">Timeline</h2>
@@ -396,7 +434,22 @@ export function PlannerPage({
                 </p>
               </div>
             </div>
-            {sortedTasks.length === 0 && weeklyGoals.length === 0 ? (
+            {isDateLoading ? (
+              <div className="space-y-3" aria-label="Loading tasks">
+                {Array.from({ length: 4 }, (_, index) => (
+                  <div key={index} className="animate-pulse rounded-xl border bg-card p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="h-9 w-9 rounded-full bg-muted" />
+                      <div className="flex-1 space-y-2">
+                        <div className="h-4 w-2/5 rounded bg-muted" />
+                        <div className="h-3 w-1/4 rounded bg-muted" />
+                      </div>
+                      <div className="h-8 w-20 rounded bg-muted" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : sortedTasks.length === 0 && weeklyGoals.length === 0 ? (
               <div className="rounded-xl border border-dashed px-6 py-16 text-center">
                 <CheckCircle2 className="mx-auto mb-3 h-8 w-8 text-muted-foreground" />
                 <h3 className="font-semibold">Nothing scheduled yet</h3>
@@ -410,7 +463,9 @@ export function PlannerPage({
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <h3 className="text-sm font-semibold">Recurring goals</h3>
-                      <span className="text-xs text-muted-foreground">Repeats every {format(date, "EEEE")}</span>
+                      <span className="text-xs text-muted-foreground">
+                        Repeats every {format(date, "EEEE")}
+                      </span>
                     </div>
                     {weeklyGoals.map((goal) => {
                       const completed = weeklyGoalOccurrences.some(
@@ -428,18 +483,28 @@ export function PlannerPage({
                             type="button"
                             onClick={() => void toggleWeeklyGoal(goal)}
                             aria-label={`${completed ? "Mark incomplete" : "Complete"}: ${goal.title}`}
-                            title={completed ? "Mark incomplete" : "Mark complete"}
+                            title={
+                              completed ? "Mark incomplete" : "Mark complete"
+                            }
                             className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border transition-colors ${completed ? "border-emerald-500 bg-emerald-500 text-white" : "border-muted-foreground/40 text-muted-foreground hover:border-primary hover:text-primary"}`}
                           >
-                            {completed ? <Check className="h-4 w-4" /> : <Circle className="h-4 w-4" />}
+                            {completed ? (
+                              <Check className="h-4 w-4" />
+                            ) : (
+                              <Circle className="h-4 w-4" />
+                            )}
                           </button>
                           <div className="min-w-0 flex-1">
-                            <p className={`text-sm font-medium ${completed ? "line-through text-muted-foreground" : ""}`}>
+                            <p
+                              className={`text-sm font-medium ${completed ? "line-through text-muted-foreground" : ""}`}
+                            >
                               {goal.title}
                             </p>
                             <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                               <span>Weekly goal</span>
-                              {goal.startTime && <span>{goal.startTime.slice(0, 5)}</span>}
+                              {goal.startTime && (
+                                <span>{goal.startTime.slice(0, 5)}</span>
+                              )}
                               {goal.notes && <span>{goal.notes}</span>}
                             </div>
                           </div>
@@ -451,28 +516,30 @@ export function PlannerPage({
 
                 {sortedTasks.length > 0 && (
                   <div className="space-y-2">
-                    {weeklyGoals.length > 0 && <h3 className="text-sm font-semibold">Daily tasks</h3>}
-                <DndContext
-                  sensors={sensors}
-                  collisionDetection={closestCenter}
-                  onDragEnd={handleDragEnd}
-                >
-                  <SortableContext
-                    items={sortedTasks.map((t) => t.id)}
-                    strategy={verticalListSortingStrategy}
-                  >
-                    {sortedTasks.map((task) => (
-                      <TaskRow
-                        key={task.id}
-                        task={task}
-                        onStatusChange={updateStatus}
-                        onDelete={(task) => setToDelete(task)}
-                        onMoveNext={moveTaskToNextDay}
-                        onEdit={(task) => setEditing(task)}
-                      />
-                    ))}
-                  </SortableContext>
-                </DndContext>
+                    {weeklyGoals.length > 0 && (
+                      <h3 className="text-sm font-semibold">Daily tasks</h3>
+                    )}
+                    <DndContext
+                      sensors={sensors}
+                      collisionDetection={closestCenter}
+                      onDragEnd={handleDragEnd}
+                    >
+                      <SortableContext
+                        items={sortedTasks.map((t) => t.id)}
+                        strategy={verticalListSortingStrategy}
+                      >
+                        {sortedTasks.map((task) => (
+                          <TaskRow
+                            key={task.id}
+                            task={task}
+                            onStatusChange={updateStatus}
+                            onDelete={(task) => setToDelete(task)}
+                            onMoveNext={moveTaskToNextDay}
+                            onEdit={(task) => setEditing(task)}
+                          />
+                        ))}
+                      </SortableContext>
+                    </DndContext>
                   </div>
                 )}
               </div>
@@ -489,6 +556,7 @@ export function PlannerPage({
         </span>
       </footer>
 
+      {/* Delete Task Dialog */}
       <Dialog
         open={!!toDelete}
         onOpenChange={(open) => !open && setToDelete(null)}
