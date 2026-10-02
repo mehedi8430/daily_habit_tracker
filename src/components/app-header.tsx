@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import {
   Moon,
@@ -48,7 +49,7 @@ export function AppHeader({ isAuthorized }: { isAuthorized: boolean }) {
   const links = [
     { href: "/", label: "Calendar", icon: CalendarDays },
     { href: "/habits", label: "Milestones", icon: ClipboardList },
-    { href: "/planner", label: "Daily Planner", icon: ListTodo },
+    { href: "/planner", label: "Planner", icon: ListTodo },
     { href: "/analytics", label: "Analytics", icon: BarChart3 },
   ];
 
@@ -60,8 +61,22 @@ export function AppHeader({ isAuthorized }: { isAuthorized: boolean }) {
       <div className="container flex h-14 items-center justify-between gap-2">
         <div className="flex min-w-0 items-center gap-4">
           <Link href="/" className="flex shrink-0 items-center gap-2 font-bold">
-            <span className="text-xl">✅</span>
-            <span className="hidden sm:inline">Habit Tracker</span>
+            <Image
+              src="/logo.svg"
+              alt="DayStackUp logo"
+              width={36}
+              height={36}
+              className="size-10 sm:size-14 rounded-md"
+              priority
+            />
+            <div className="flex flex-col items-start leading-none">
+              <span className="text-lg sm:text-xl tracking-tight">
+                DayStackUp
+              </span>
+              <span className="text-[10px] sm:text-xs text-muted-foreground -mt-0.5 hidden sm:block">
+                Stack your day. Keep moving up.
+              </span>
+            </div>
           </Link>
           {isAuthorized && (
             <nav className="hidden items-center gap-1 md:flex">

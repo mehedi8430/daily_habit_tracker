@@ -1,8 +1,8 @@
-# Daily Habit Tracker
+# DayStackUp
 
-A modern daily habit tracker built with **Next.js** and **Supabase**. Track habits on a monthly calendar, build streaks, and measure progress with a full analytics dashboard — with multi-user support out of the box.
+A modern productivity habit tracker built with **Next.js** and **Supabase**. Stack your day, build streaks, track habits on a monthly calendar, plan your day with the planner, and measure progress with a full analytics dashboard — with multi-user support out of the box.
 
-[![Live Demo](https://daily-habit-tracker-mhr.vercel.app/)](https://daily-habit-tracker-mhr.vercel.app/)
+[![Live Demo](https://daystackup.vercel.app/)](https://daystackup.vercel.app/)
 [![Next.js](https://img.shields.io/badge/Next.js-16-black)](https://nextjs.org)
 [![React](https://img.shields.io/badge/React-19-61dafb)](https://react.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178c6)](https://www.typescriptlang.org)

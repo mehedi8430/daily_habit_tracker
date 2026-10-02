@@ -9,8 +9,8 @@ import { createClient } from "@/lib/supabase/server";
 const inter = Inter({ subsets: ["latin"], variable: "--font-geist-sans" });
 
 export const metadata: Metadata = {
-  title: "Daily Habit Tracker",
-  description: "Track your daily habits and visualize your progress.",
+  title: "DayStackUp",
+  description: "Stack your day. Keep moving up. Track habits, plan your day, and visualize your progress.",
 };
 
 const themeScript = `try{var t=localStorage.getItem("habit-theme");if(t?t==="dark":!window.matchMedia("(prefers-color-scheme: light)").matches){document.documentElement.classList.add("dark")}}catch(e){}`;

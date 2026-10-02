@@ -1,4 +1,4 @@
-# Daily Habit Tracker — Docs
+# DayStackUp — Docs
 
 ## Purpose
 
@@ -64,12 +64,13 @@ A full-stack daily habit tracker. Track daily habits on a calendar, plan each da
   - **Level badge** — Beginner → Intermediate → Advanced → Elite → Legendary based on average score
   - Active habit count
   - Best/current streak (🔥)
-- **Time Worked chart** — hours from completed/in-progress planner task durations; per-day, per-week (toggleable in month view), or per-month (year view)
-- **Monthly Completion chart** (year view) — % of habits completed in each month
-- **Per-Habit Completion bar chart** — color-coded by category
-- **Daily Score line chart** — % of habits completed each day
-- **Streaks panel** — current (🔥) and best (🏆) streak for every habit
-- **Yearly Heatmap** (GitHub-style) — completion density per day with tooltips and a less/more legend
+        - **Time Worked chart** — hours from completed/in-progress planner task durations; per-day, per-week (toggleable in month view), or per-month (year view); supports **Bar/Line view toggle** with Bar as default
+       - **Monthly Completion chart** (year view) — % of habits completed in each month
+       - **Per-Habit Completion bar chart** — color-coded by category
+       - **Daily Score line chart** — % of habits completed each day
+       - **Streaks panel** — current (🔥) and best (🏆) streak for every habit
+       - **Yearly Heatmap** (GitHub-style) — completion density per day with tooltips and a less/more legend
+       - **Month/Week navigation** — prev/next controls in Month and Week views to filter analytics data by any month or week
 - Empty state when no habits exist yet
 
 ### 8. UI / UX

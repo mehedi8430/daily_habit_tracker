@@ -88,6 +88,7 @@ No dedicated test suite is present right now; lint is the primary validation pat
 - Habit ordering uses `sort_order` and should be maintained consistently through reorder actions.
 - Dates should use the existing local date helpers and ISO/date string conventions already used across the app.
 - If you update a feature that affects analytics, verify the calendar, planner, and analytics views still fit the same assumptions.
+- Analytics time worked supports bar/line toggle and month/week navigation; preserve mobile-friendly spacing when modifying charts.
 
 ## Agent workflow
 When making changes, the agent should:
