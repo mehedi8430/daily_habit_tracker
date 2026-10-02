@@ -5,6 +5,8 @@ import { format } from "date-fns";
 import {
   BarChart,
   Bar,
+  LineChart,
+  Line,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -57,6 +59,7 @@ interface TimeWorkedChartProps {
 
 export function TimeWorkedChart({ view, yearCursor, days, tasks }: TimeWorkedChartProps) {
   const [timeView, setTimeView] = React.useState<"day" | "week">("day");
+  const [chartType, setChartType] = React.useState<"bar" | "line">("bar");
 
   const data: TimeWorkedPoint[] = React.useMemo(() => {
     if (view === "year") {
@@ -121,56 +124,107 @@ export function TimeWorkedChart({ view, yearCursor, days, tasks }: TimeWorkedCha
             <CardTitle>Time Worked</CardTitle>
             <CardDescription>{description}</CardDescription>
           </div>
-          {view === "month" && (
-            <Tabs value={timeView} onValueChange={(v) => setTimeView(v as "day" | "week")}>
-              <TabsList>
-                <TabsTrigger value="day">Day</TabsTrigger>
-                <TabsTrigger value="week">Week</TabsTrigger>
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+            <Tabs value={chartType} onValueChange={(v) => setChartType(v as "bar" | "line")}>
+              <TabsList className="h-8 sm:h-10">
+                <TabsTrigger className="text-xs sm:text-sm px-2 sm:px-3" value="bar">Bar</TabsTrigger>
+                <TabsTrigger className="text-xs sm:text-sm px-2 sm:px-3" value="line">Line</TabsTrigger>
               </TabsList>
             </Tabs>
-          )}
+            {view === "month" && (
+              <Tabs value={timeView} onValueChange={(v) => setTimeView(v as "day" | "week")}>
+                <TabsList className="h-8 sm:h-10">
+                  <TabsTrigger className="text-xs sm:text-sm px-2 sm:px-3" value="day">Day</TabsTrigger>
+                  <TabsTrigger className="text-xs sm:text-sm px-2 sm:px-3" value="week">Week</TabsTrigger>
+                </TabsList>
+              </Tabs>
+            )}
+          </div>
         </div>
       </CardHeader>
       <CardContent>
-        <div className="h-[300px] w-full">
+        <div className="h-75 w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={data} margin={{ left: -10, right: 10 }}>
-              <CartesianGrid
-                strokeDasharray="3 3"
-                className="stroke-muted"
-                vertical={false}
-              />
-              <XAxis
-                dataKey={
-                  view === "year"
-                    ? "month"
-                    : view === "month" && timeView === "week"
-                      ? "week"
-                      : "date"
-                }
-                tick={{ fontSize: 11 }}
-                className="fill-muted-foreground"
-              />
-              <YAxis
-                tick={{ fontSize: 12 }}
-                className="fill-muted-foreground"
-              />
-              <RTooltip
-                contentStyle={chartTooltipStyle}
-                formatter={(value, _n, item) => [
-                  formatDuration(item?.payload?.mins ?? 0),
-                  "Time worked",
-                ]}
-                labelFormatter={(_l, payload) =>
-                  (payload?.[0]?.payload?.full as string) ?? ""
-                }
-              />
-              <Bar
-                dataKey="hours"
-                radius={[4, 4, 0, 0]}
-                fill="hsl(var(--primary))"
-              />
-            </BarChart>
+            {chartType === "bar" ? (
+              <BarChart data={data} margin={{ left: -10, right: 10 }}>
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  className="stroke-muted"
+                  vertical={false}
+                />
+                <XAxis
+                  dataKey={
+                    view === "year"
+                      ? "month"
+                      : view === "month" && timeView === "week"
+                        ? "week"
+                        : "date"
+                  }
+                  tick={{ fontSize: 11 }}
+                  className="fill-muted-foreground"
+                />
+                <YAxis
+                  tick={{ fontSize: 12 }}
+                  className="fill-muted-foreground"
+                />
+                <RTooltip
+                  contentStyle={chartTooltipStyle}
+                  formatter={(value, _n, item) => [
+                    formatDuration(item?.payload?.mins ?? 0),
+                    "Time worked",
+                  ]}
+                  labelFormatter={(_l, payload) =>
+                    (payload?.[0]?.payload?.full as string) ?? ""
+                  }
+                />
+                <Bar
+                  dataKey="hours"
+                  radius={[4, 4, 0, 0]}
+                  fill="hsl(var(--primary))"
+                />
+              </BarChart>
+            ) : (
+              <LineChart data={data} margin={{ left: -10, right: 10 }}>
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  className="stroke-muted"
+                  vertical={false}
+                />
+                <XAxis
+                  dataKey={
+                    view === "year"
+                      ? "month"
+                      : view === "month" && timeView === "week"
+                        ? "week"
+                        : "date"
+                  }
+                  tick={{ fontSize: 11 }}
+                  className="fill-muted-foreground"
+                />
+                <YAxis
+                  tick={{ fontSize: 12 }}
+                  className="fill-muted-foreground"
+                />
+                <RTooltip
+                  contentStyle={chartTooltipStyle}
+                  formatter={(value, _n, item) => [
+                    formatDuration(item?.payload?.mins ?? 0),
+                    "Time worked",
+                  ]}
+                  labelFormatter={(_l, payload) =>
+                    (payload?.[0]?.payload?.full as string) ?? ""
+                  }
+                />
+                <Line
+                  type="monotone"
+                  dataKey="hours"
+                  stroke="hsl(var(--primary))"
+                  strokeWidth={2}
+                  dot={{ r: 3 }}
+                  activeDot={{ r: 5 }}
+                />
+              </LineChart>
+            )}
           </ResponsiveContainer>
         </div>
       </CardContent>

@@ -46,7 +46,7 @@ export function Analytics({ initialHabits, initialCompletions, initialPlannerTas
     }
   }, [initialized, initialize, initialHabits, initialCompletions]);
 
-  const [cursor] = React.useState<Date>(() => new Date());
+  const [cursor, setCursor] = React.useState<Date>(() => new Date());
   const [yearCursor, setYearCursor] = React.useState<number>(new Date().getFullYear());
   const [view, setView] = React.useState<AnalyticsView>("month");
   const [plannerTasks, setPlannerTasks] = React.useState<PlannerTask[]>(initialPlannerTasks);
@@ -178,6 +178,7 @@ export function Analytics({ initialHabits, initialCompletions, initialPlannerTas
         cursor={cursor}
         onViewChange={setView}
         onYearChange={setYearCursor}
+        onCursorChange={setCursor}
       />
 
       <SummaryCards

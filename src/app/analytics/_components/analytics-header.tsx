@@ -1,6 +1,6 @@
 "use client";
 
-import { format } from "date-fns";
+import { format, addMonths, subMonths, addWeeks, subWeeks } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -12,6 +12,7 @@ interface AnalyticsHeaderProps {
   cursor: Date;
   onViewChange: (view: AnalyticsView) => void;
   onYearChange: (year: number) => void;
+  onCursorChange?: (date: Date) => void;
 }
 
 export function AnalyticsHeader({
@@ -20,7 +21,26 @@ export function AnalyticsHeader({
   cursor,
   onViewChange,
   onYearChange,
+  onCursorChange,
 }: AnalyticsHeaderProps) {
+  const handlePrev = () => {
+    if (!onCursorChange) return;
+    if (view === "month") {
+      onCursorChange(subMonths(cursor, 1));
+    } else if (view === "week") {
+      onCursorChange(subWeeks(cursor, 1));
+    }
+  };
+
+  const handleNext = () => {
+    if (!onCursorChange) return;
+    if (view === "month") {
+      onCursorChange(addMonths(cursor, 1));
+    } else if (view === "week") {
+      onCursorChange(addWeeks(cursor, 1));
+    }
+  };
+
   return (
     <div className="flex flex-wrap items-center justify-between gap-3">
       <div>
@@ -28,28 +48,30 @@ export function AnalyticsHeader({
         <p className="text-sm text-muted-foreground">
           {view === "year"
             ? `Your progress for ${yearCursor}`
-            : `Your progress for ${format(cursor, "MMMM yyyy")}`}
+            : view === "week"
+              ? `Your progress for week of ${format(cursor, "MMM d, yyyy")}`
+              : `Your progress for ${format(cursor, "MMMM yyyy")}`}
         </p>
       </div>
       <div className="flex flex-wrap items-center gap-3">
-        {view === "year" && (
+        {(view === "year" || view === "month" || view === "week") && (view === "year" ? true : onCursorChange) && (
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
               size="icon"
-              onClick={() => onYearChange(yearCursor - 1)}
-              aria-label="Previous year"
+              onClick={view === "year" ? () => onYearChange(yearCursor - 1) : handlePrev}
+              aria-label={view === "year" ? "Previous year" : view === "month" ? "Previous month" : "Previous week"}
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
             <h2 className="min-w-20 text-center text-lg font-bold">
-              {yearCursor}
+              {view === "year" ? yearCursor : view === "month" ? format(cursor, "MMM yyyy") : format(cursor, "MMM d")}
             </h2>
             <Button
               variant="outline"
               size="icon"
-              onClick={() => onYearChange(yearCursor + 1)}
-              aria-label="Next year"
+              onClick={view === "year" ? () => onYearChange(yearCursor + 1) : handleNext}
+              aria-label={view === "year" ? "Next year" : view === "month" ? "Next month" : "Next week"}
             >
               <ChevronRight className="h-4 w-4" />
             </Button>
